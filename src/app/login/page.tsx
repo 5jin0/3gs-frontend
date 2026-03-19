@@ -2,12 +2,14 @@
 
 import type { FormEvent } from "react";
 import { useState } from "react";
+import { useRouter } from "next/navigation";
 import Link from "next/link";
 
 import { login } from "@/lib/api";
 import { setAuth } from "@/lib/auth";
 
 export default function LoginPage() {
+  const router = useRouter();
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -22,7 +24,7 @@ export default function LoginPage() {
     try {
       const res = await login(username, password);
       setAuth(res.access_token, res.user);
-      // Step 3에서 access_token / user를 localStorage에 저장할 예정
+      router.push("/");
     } catch (err) {
       const message =
         err instanceof Error ? err.message : "로그인에 실패했습니다.";
