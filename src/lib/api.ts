@@ -1,9 +1,22 @@
 import axios from "axios";
+import { getAccessToken } from "@/lib/auth";
 
 const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL;
 
 export const api = axios.create({
   baseURL: API_BASE_URL,
+});
+
+// Attach Authorization header automatically for authenticated requests.
+api.interceptors.request.use((config) => {
+  const token = getAccessToken();
+  if (!token) return config;
+
+  // Axios headers type varies across versions, so we cast to a simple record.
+  config.headers = config.headers ?? {};
+  (config.headers as Record<string, string>)["Authorization"] = `Bearer ${token}`;
+
+  return config;
 });
 
 export type AuthUser = {
