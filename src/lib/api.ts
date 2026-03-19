@@ -37,17 +37,24 @@ export type LoginResponse = {
   user: AuthUser;
 };
 
-function assertApiBaseUrl() {
-  if (!API_BASE_URL) {
-    throw new Error("NEXT_PUBLIC_API_BASE_URL is not set.");
+function assertApiBaseUrl(): string | null {
+  if (!process.env.NEXT_PUBLIC_API_BASE_URL) {
+    // This prevents a hard crash when env is not configured.
+    console.error("API base URL is not configured");
+    return null;
   }
+  return API_BASE_URL ?? null;
 }
 
 export async function login(
   username: string,
   password: string,
 ): Promise<LoginResponse> {
-  assertApiBaseUrl();
+  const baseUrl = assertApiBaseUrl();
+  if (!baseUrl) {
+    // Let the caller (UI) handle the message safely.
+    throw new Error("API base URL is not configured");
+  }
 
   const payload: LoginRequest = { username, password };
 
