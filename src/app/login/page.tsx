@@ -5,6 +5,7 @@ import { useState } from "react";
 import Link from "next/link";
 
 import { login } from "@/lib/api";
+import { setAuth } from "@/lib/auth";
 
 export default function LoginPage() {
   const [username, setUsername] = useState("");
@@ -19,7 +20,8 @@ export default function LoginPage() {
     setErrorMessage(null);
     setIsSubmitting(true);
     try {
-      await login(username, password);
+      const res = await login(username, password);
+      setAuth(res.access_token, res.user);
       // Step 3에서 access_token / user를 localStorage에 저장할 예정
     } catch (err) {
       const message =
