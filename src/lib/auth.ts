@@ -13,6 +13,10 @@ export function getAccessToken(): string | null {
   return window.localStorage.getItem(ACCESS_TOKEN_KEY);
 }
 
+export function isLoggedIn(): boolean {
+  return Boolean(getAccessToken());
+}
+
 export function getUser(): AuthUser | null {
   if (!canUseLocalStorage()) return null;
 
