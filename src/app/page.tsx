@@ -2,9 +2,13 @@ import { SearchBar } from "@/components/SearchBar";
 
 export default function Home() {
   return (
-    <main className="mx-auto flex min-h-[calc(100dvh-3.5rem)] w-full max-w-5xl items-center justify-center px-6 py-14">
+    <main className="relative mx-auto flex min-h-[calc(100dvh-3.5rem)] w-full max-w-5xl items-center justify-center px-6 py-14">
+      <div
+        aria-hidden
+        className="pointer-events-none absolute inset-0 -z-10 bg-[radial-gradient(900px_circle_at_50%_15%,rgba(24,24,27,0.08),transparent_55%)] dark:bg-[radial-gradient(900px_circle_at_50%_15%,rgba(244,244,245,0.10),transparent_55%)]"
+      />
       <section className="w-full max-w-2xl text-center">
-        <h1 className="text-4xl font-semibold tracking-tight sm:text-5xl">
+        <h1 className="text-4xl font-semibold tracking-tight sm:text-6xl">
           판교패스
         </h1>
         <p className="mx-auto mt-4 max-w-xl text-base leading-7 text-zinc-600 dark:text-zinc-400 sm:text-lg">
