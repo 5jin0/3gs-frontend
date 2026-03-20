@@ -2,6 +2,7 @@
 
 import {
   useEffect,
+  useRef,
   useState,
   type FormEvent,
   type KeyboardEvent,
@@ -72,6 +73,9 @@ function ResultCard({ item }: { item: PangyoTerm }) {
 }
 
 export function SearchBar() {
+  const suggestionsContainerRef = useRef<HTMLDivElement | null>(null);
+  const suggestionsCacheRef = useRef(new Map<string, PangyoTermSuggestion[]>());
+  const inFlightSuggestionKeywordRef = useRef<string | null>(null);
   const [keyword, setKeyword] = useState("");
   const [suggestions, setSuggestions] = useState<PangyoTermSuggestion[]>([]);
   const [showSuggestions, setShowSuggestions] = useState(false);
@@ -83,6 +87,21 @@ export function SearchBar() {
   const canSubmit = keyword.trim().length > 0 && !loading;
 
   useEffect(() => {
+    function handleDocumentMouseDown(event: MouseEvent) {
+      const target = event.target as Node | null;
+      if (!target) return;
+      if (!suggestionsContainerRef.current?.contains(target)) {
+        setShowSuggestions(false);
+      }
+    }
+
+    document.addEventListener("mousedown", handleDocumentMouseDown);
+    return () => {
+      document.removeEventListener("mousedown", handleDocumentMouseDown);
+    };
+  }, []);
+
+  useEffect(() => {
     const q = keyword.trim();
     if (q.length < 2) {
       setSuggestions([]);
@@ -90,17 +109,34 @@ export function SearchBar() {
       return;
     }
 
+    const cached = suggestionsCacheRef.current.get(q);
+    if (cached) {
+      setSuggestions(cached);
+      setShowSuggestions(cached.length > 0);
+      return;
+    }
+
+    if (inFlightSuggestionKeywordRef.current === q) {
+      return;
+    }
+
     let active = true;
     const timer = setTimeout(async () => {
+      inFlightSuggestionKeywordRef.current = q;
       try {
         const data = await getTermSuggestions(q);
         if (!active) return;
+        suggestionsCacheRef.current.set(q, data);
         setSuggestions(data);
         setShowSuggestions(data.length > 0);
       } catch {
         if (!active) return;
         setSuggestions([]);
         setShowSuggestions(false);
+      } finally {
+        if (inFlightSuggestionKeywordRef.current === q) {
+          inFlightSuggestionKeywordRef.current = null;
+        }
       }
     }, 250);
 
@@ -154,7 +190,7 @@ export function SearchBar() {
           <label className="sr-only" htmlFor="keyword">
             검색어
           </label>
-          <div className="relative w-full">
+          <div ref={suggestionsContainerRef} className="relative w-full">
             <input
               id="keyword"
               name="keyword"
@@ -166,7 +202,6 @@ export function SearchBar() {
               onFocus={() => setShowSuggestions(suggestions.length > 0)}
               onBlur={() => {
                 setKeyword((k) => k.trim());
-                setTimeout(() => setShowSuggestions(false), 100);
               }}
               onKeyDown={handleKeywordKeyDown}
               disabled={loading}
