@@ -7,6 +7,12 @@ export const api = axios.create({
   baseURL: process.env.NEXT_PUBLIC_API_BASE_URL,
 });
 
+/** Standard JSON envelope from the backend. */
+export type ApiSuccessResponse<T> = {
+  success: true;
+  data: T;
+};
+
 // Attach Authorization header automatically for authenticated requests.
 api.interceptors.request.use((config) => {
   const token = getAccessToken();

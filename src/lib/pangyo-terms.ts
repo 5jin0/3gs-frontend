@@ -1,4 +1,4 @@
-import { api } from "@/lib/api";
+import { api, type ApiSuccessResponse } from "@/lib/api";
 
 /** Single term row returned from the Pangyo glossary search endpoint. */
 export type PangyoTerm = {
@@ -8,10 +8,7 @@ export type PangyoTerm = {
   example: string;
 };
 
-export type ApiSuccessResponse<T> = {
-  success: true;
-  data: T;
-};
+export type { ApiSuccessResponse } from "@/lib/api";
 
 export type PangyoTermSuggestion = {
   term: string;
