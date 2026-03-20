@@ -18,6 +18,7 @@ export type PangyoTermSuggestion = {
 };
 
 export type TermSuggestionsResponse = ApiSuccessResponse<PangyoTermSuggestion[]>;
+type SuggestionSelectEventResponse = ApiSuccessResponse<unknown>;
 
 const LIST_KEYS = [
   "data",
@@ -139,4 +140,10 @@ export async function getTermSuggestions(
   });
 
   return Array.isArray(data.data) ? data.data : [];
+}
+
+export async function trackSuggestionSelect(keyword: string): Promise<void> {
+  await api.post<SuggestionSelectEventResponse>("/terms/events/suggestion-select", {
+    keyword,
+  });
 }

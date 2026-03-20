@@ -2,221 +2,97 @@ import axios from "axios";
 import { api, type ApiSuccessResponse } from "@/lib/api";
 import { getAccessToken } from "@/lib/auth";
 
-/**
- * A term the user saved to their wordbook (API may add fields; index signature allows extras).
- */
 export type SavedWord = {
-  id: number;
   term_id: number;
   term: string;
   original_meaning: string;
   definition: string;
   example: string;
   saved_at?: string;
+  id?: number;
 };
 
-export type SaveTermResponse = ApiSuccessResponse<SavedWord>;
-export type MyWordsResponse = ApiSuccessResponse<SavedWord[]>;
-export type RemoveSavedTermResponse = ApiSuccessResponse<unknown>;
-export type SaveTermApiData = {
+type SaveTermApiData = {
   saved?: boolean;
   already_saved?: boolean;
   term_id?: number;
-  termId?: number;
-  id?: number;
-} & Partial<SavedWord>;
+  saved_id?: number;
+  user_id?: number;
+};
 
-export type SaveTermApiResponse = ApiSuccessResponse<SaveTermApiData>;
+type SaveTermApiResponse = ApiSuccessResponse<SaveTermApiData>;
+type GetMyWordsApiItem = {
+  term_id: number;
+  term: string;
+  originalMeaning?: string;
+  original_meaning?: string;
+  definition?: string;
+  example?: string;
+  saved_at?: string;
+};
+type GetMyWordsApiResponse = ApiSuccessResponse<GetMyWordsApiItem[]>;
+export type RemoveSavedTermResponse = ApiSuccessResponse<unknown>;
+
 export type SaveTermResult = {
   termId: number;
   saved: boolean;
   alreadySaved: boolean;
-  item?: SavedWord;
 };
-const SAVE_TERM_ENDPOINTS = [
-  "/wordbook/terms",
-  "/wordbook/save",
-  "/terms/save",
-] as const;
-const GET_MY_WORDS_ENDPOINTS = [
-  "/wordbook/terms",
-  "/wordbook/list",
-  "/wordbook/my-words",
-  "/wordbook",
-] as const;
-const REMOVE_SAVED_TERM_ENDPOINTS = [
-  (termId: number) => `/wordbook/terms/${termId}`,
-  (termId: number) => `/wordbook/remove/${termId}`,
-  (termId: number) => `/wordbook/${termId}`,
-] as const;
 
+const SAVE_TERM_ENDPOINT = "/wordbook/save";
+const GET_MY_WORDS_ENDPOINT = "/wordbook";
+const REMOVE_SAVED_TERM_ENDPOINT = "/wordbook/terms";
 const MISSING_TOKEN_ERROR_CODE = "MISSING_ACCESS_TOKEN";
 
-function normalizeSavedWord(raw: unknown): SavedWord | null {
-  if (!raw || typeof raw !== "object") return null;
-  const r = raw as Record<string, unknown>;
-
-  const id =
-    typeof r.id === "number"
-      ? r.id
-      : typeof r.saved_id === "number"
-        ? r.saved_id
-        : typeof r.term_id === "number"
-          ? r.term_id
-          : null;
-  const termId =
-    typeof r.term_id === "number"
-      ? r.term_id
-      : typeof r.termId === "number"
-        ? r.termId
-        : typeof r.id === "number"
-          ? r.id
-          : null;
-
-  if (id == null || termId == null) return null;
-
-  return {
-    id,
-    term_id: termId,
-    term: typeof r.term === "string" ? r.term : "",
-    original_meaning:
-      typeof r.original_meaning === "string" ? r.original_meaning : "",
-    definition: typeof r.definition === "string" ? r.definition : "",
-    example: typeof r.example === "string" ? r.example : "",
-    saved_at: typeof r.saved_at === "string" ? r.saved_at : undefined,
-  };
-}
-
-function normalizeSavedWordsPayload(payload: unknown): SavedWord[] {
-  if (!payload || typeof payload !== "object") return [];
-  const root = payload as Record<string, unknown>;
-  const data = root.data;
-  const list =
-    Array.isArray(data) ? data : Array.isArray(root.results) ? root.results : [];
-  return list
-    .map(normalizeSavedWord)
-    .filter((x): x is SavedWord => x !== null);
-}
-
-/**
- * Save a glossary term to the current user's wordbook.
- * POST /wordbook/terms — body: { term_id }
- */
 export async function saveTerm(termId: number): Promise<SaveTermResult> {
   const token = getAccessToken();
   const body = { term_id: termId };
   const requestHeaders = token ? { Authorization: `Bearer ${token}` } : {};
 
+  console.log("[wordbook] saveTerm request", {
+    method: "POST",
+    url: SAVE_TERM_ENDPOINT,
+    body,
+    token,
+    headers: requestHeaders,
+  });
+
   if (!token) {
-    console.log("[wordbook] saveTerm request", {
-      method: "POST",
-      url: SAVE_TERM_ENDPOINTS[0],
-      body,
-      token,
-      headers: requestHeaders,
-    });
     const error = new Error(MISSING_TOKEN_ERROR_CODE);
     (error as Error & { code?: string }).code = MISSING_TOKEN_ERROR_CODE;
     throw error;
   }
 
-  let lastError: unknown = null;
+  const { data } = await api.post<SaveTermApiResponse>(SAVE_TERM_ENDPOINT, body, {
+    headers: requestHeaders,
+  });
+  console.log("[wordbook] saveTerm response", { url: SAVE_TERM_ENDPOINT, data });
 
-  for (const url of SAVE_TERM_ENDPOINTS) {
-    try {
-      console.log("[wordbook] saveTerm request", {
-        method: "POST",
-        url,
-        body,
-        token,
-        headers: requestHeaders,
-      });
-
-      const { data } = await api.post<SaveTermApiResponse>(url, body, {
-        headers: requestHeaders,
-      });
-      console.log("[wordbook] saveTerm response", { url, data });
-
-      const payload = data.data ?? {};
-      const savedFlag = payload.saved === true;
-      const alreadySavedFlag = payload.already_saved === true;
-      const resolvedTermId =
-        payload.term_id ??
-        payload.termId ??
-        (typeof payload.id === "number" ? payload.id : undefined) ??
-        termId;
-
-      return {
-        termId: resolvedTermId,
-        saved: savedFlag,
-        alreadySaved: alreadySavedFlag,
-        item:
-          typeof payload.term === "string" && typeof payload.term_id === "number"
-            ? (payload as SavedWord)
-            : undefined,
-      };
-    } catch (error) {
-      lastError = error;
-      if (!axios.isAxiosError(error)) throw error;
-
-      const status = error.response?.status;
-      // Endpoint mismatch: try next candidate.
-      if (status === 404 || status === 405) {
-        continue;
-      }
-
-      throw error;
-    }
-  }
-
-  throw lastError ?? new Error("Save term request failed");
+  const payload = data.data ?? {};
+  return {
+    termId: payload.term_id ?? termId,
+    saved: payload.saved === true,
+    alreadySaved: payload.already_saved === true,
+  };
 }
 
-/**
- * List the current user's saved terms.
- * GET /wordbook/terms
- */
 export async function getMyWords(): Promise<SavedWord[]> {
-  let lastError: unknown = null;
+  const { data } = await api.get<GetMyWordsApiResponse>(GET_MY_WORDS_ENDPOINT);
+  const items = Array.isArray(data.data) ? data.data : [];
 
-  for (const url of GET_MY_WORDS_ENDPOINTS) {
-    try {
-      console.log("[wordbook] getMyWords request", { method: "GET", url });
-      const { data } = await api.get<unknown>(url);
-      console.log("[wordbook] getMyWords response", { url, data });
-      return normalizeSavedWordsPayload(data);
-    } catch (error) {
-      lastError = error;
-      if (!axios.isAxiosError(error)) throw error;
-      const status = error.response?.status;
-      if (status === 404 || status === 405) continue;
-      throw error;
-    }
-  }
-
-  throw lastError ?? new Error("Get my words request failed");
+  return items.map((item) => ({
+    term_id: item.term_id,
+    term: item.term,
+    original_meaning: item.originalMeaning ?? item.original_meaning ?? "",
+    definition: item.definition ?? "",
+    example: item.example ?? "",
+    saved_at: item.saved_at,
+    id: item.term_id,
+  }));
 }
 
-/**
- * Remove a saved term from the wordbook.
- * DELETE /wordbook/terms/:termId
- */
 export async function removeSavedTerm(termId: number): Promise<void> {
-  let lastError: unknown = null;
-  for (const makeUrl of REMOVE_SAVED_TERM_ENDPOINTS) {
-    const url = makeUrl(termId);
-    try {
-      await api.delete<RemoveSavedTermResponse>(url);
-      return;
-    } catch (error) {
-      lastError = error;
-      if (!axios.isAxiosError(error)) throw error;
-      const status = error.response?.status;
-      if (status === 404 || status === 405) continue;
-      throw error;
-    }
-  }
-  throw lastError ?? new Error("Remove saved term request failed");
+  await api.delete<RemoveSavedTermResponse>(`${REMOVE_SAVED_TERM_ENDPOINT}/${termId}`);
 }
 
 export function isDuplicateSavedTermError(error: unknown): boolean {

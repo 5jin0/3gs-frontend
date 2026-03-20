@@ -11,6 +11,7 @@ import { useAuth } from "@/contexts/AuthContext";
 import {
   getTermSuggestions,
   searchTerms,
+  trackSuggestionSelect,
   type PangyoTerm,
   type PangyoTermSuggestion,
 } from "@/lib/pangyo-terms";
@@ -80,7 +81,7 @@ function ResultCard({
       if (result.alreadySaved) {
         setFeedback({ kind: "warn", text: "이미 저장된 단어입니다." });
       } else if (result.saved) {
-        setFeedback({ kind: "success", text: "단어장에 저장되었습니다" });
+        setFeedback({ kind: "success", text: "단어장에 저장되었습니다." });
       } else {
         setFeedback({ kind: "error", text: "저장 결과를 확인할 수 없습니다." });
       }
@@ -317,6 +318,9 @@ export function SearchBar() {
   function handleSuggestionClick(term: string) {
     setKeyword(term);
     setShowSuggestions(false);
+    void trackSuggestionSelect(term).catch(() => {
+      // Fire-and-forget: tracking failure should never block input UX.
+    });
   }
 
   return (

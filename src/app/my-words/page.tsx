@@ -1,7 +1,12 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { getMyWords, removeSavedTerm, type SavedWord } from "@/lib/wordbook";
+import {
+  getMyWords,
+  isUnauthorizedError,
+  removeSavedTerm,
+  type SavedWord,
+} from "@/lib/wordbook";
 
 function MyWordsLoading() {
   return (
@@ -23,6 +28,7 @@ export default function MyWordsPage() {
   const [words, setWords] = useState<SavedWord[]>([]);
   const [loading, setLoading] = useState(true);
   const [loadError, setLoadError] = useState(false);
+  const [authError, setAuthError] = useState(false);
   const [removingTermId, setRemovingTermId] = useState<number | null>(null);
   const [removeError, setRemoveError] = useState<string | null>(null);
 
@@ -48,11 +54,18 @@ export default function MyWordsPage() {
         if (!cancelled) {
           setWords(data);
           setLoadError(false);
+          setAuthError(false);
         }
-      } catch {
+      } catch (error) {
         if (!cancelled) {
           setWords([]);
-          setLoadError(true);
+          if (isUnauthorizedError(error)) {
+            setAuthError(true);
+            setLoadError(false);
+          } else {
+            setLoadError(true);
+            setAuthError(false);
+          }
         }
       } finally {
         if (!cancelled) setLoading(false);
@@ -97,7 +110,16 @@ export default function MyWordsPage() {
 
       {loading && <MyWordsLoading />}
 
-      {!loading && loadError && (
+      {!loading && authError && (
+        <p
+          className="mx-auto max-w-2xl rounded-xl border border-zinc-200/80 bg-white/80 px-4 py-3 text-left text-sm text-zinc-600 shadow-sm dark:border-zinc-800/70 dark:bg-zinc-950/60 dark:text-zinc-400"
+          role="alert"
+        >
+          로그인 후 내 단어장을 확인할 수 있습니다.
+        </p>
+      )}
+
+      {!loading && !authError && loadError && (
         <p
           className="mx-auto max-w-2xl rounded-xl border border-zinc-200/80 bg-white/80 px-4 py-3 text-left text-sm text-red-600 shadow-sm dark:border-zinc-800/70 dark:bg-zinc-950/60 dark:text-red-400"
           role="alert"
@@ -106,13 +128,13 @@ export default function MyWordsPage() {
         </p>
       )}
 
-      {!loading && !loadError && words.length === 0 && (
+      {!loading && !loadError && !authError && words.length === 0 && (
         <p className="mx-auto max-w-2xl rounded-xl border border-zinc-200/80 bg-white/80 px-4 py-3 text-left text-sm text-zinc-600 shadow-sm dark:border-zinc-800/70 dark:bg-zinc-950/60 dark:text-zinc-400">
           저장한 단어가 없습니다
         </p>
       )}
 
-      {!loading && !loadError && words.length > 0 && (
+      {!loading && !loadError && !authError && words.length > 0 && (
         <ul className="mx-auto flex max-w-2xl flex-col gap-4">
           {removeError && (
             <p
