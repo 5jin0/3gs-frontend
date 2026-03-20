@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { getMyWords, type SavedWord } from "@/lib/wordbook";
+import { getMyWords, removeSavedTerm, type SavedWord } from "@/lib/wordbook";
 
 function MyWordsLoading() {
   return (
@@ -23,6 +23,21 @@ export default function MyWordsPage() {
   const [words, setWords] = useState<SavedWord[]>([]);
   const [loading, setLoading] = useState(true);
   const [loadError, setLoadError] = useState(false);
+  const [removingTermId, setRemovingTermId] = useState<number | null>(null);
+  const [removeError, setRemoveError] = useState<string | null>(null);
+
+  async function handleRemove(termId: number) {
+    setRemoveError(null);
+    setRemovingTermId(termId);
+    try {
+      await removeSavedTerm(termId);
+      setWords((prev) => prev.filter((w) => w.term_id !== termId));
+    } catch {
+      setRemoveError("저장 취소에 실패했습니다.");
+    } finally {
+      setRemovingTermId(null);
+    }
+  }
 
   useEffect(() => {
     let cancelled = false;
@@ -84,6 +99,14 @@ export default function MyWordsPage() {
 
       {!loading && !loadError && words.length > 0 && (
         <ul className="mx-auto flex max-w-2xl flex-col gap-4">
+          {removeError && (
+            <p
+              className="text-sm text-red-600 dark:text-red-400"
+              role="alert"
+            >
+              {removeError}
+            </p>
+          )}
           {words.map((item) => (
             <li
               key={item.id}
@@ -123,6 +146,16 @@ export default function MyWordsPage() {
                   </dd>
                 </div>
               </dl>
+              <div className="mt-4 flex justify-end border-t border-zinc-200/80 pt-4 dark:border-zinc-800/70">
+                <button
+                  type="button"
+                  onClick={() => handleRemove(item.term_id)}
+                  disabled={removingTermId !== null}
+                  className="inline-flex h-9 items-center justify-center rounded-lg border border-zinc-200 bg-white px-3 text-xs font-medium text-zinc-700 shadow-sm transition-colors hover:bg-zinc-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-zinc-400 focus-visible:ring-offset-2 focus-visible:ring-offset-white disabled:cursor-not-allowed disabled:opacity-50 dark:border-zinc-700 dark:bg-zinc-950 dark:text-zinc-300 dark:hover:bg-zinc-900 dark:focus-visible:ring-zinc-500 dark:focus-visible:ring-offset-zinc-950"
+                >
+                  {removingTermId === item.term_id ? "처리 중…" : "저장 취소"}
+                </button>
+              </div>
             </li>
           ))}
         </ul>
