@@ -3,6 +3,23 @@
 import { useState, type FormEvent, type KeyboardEvent } from "react";
 import { searchTerms, type PangyoTerm } from "@/lib/pangyo-terms";
 
+function LoadingIndicator() {
+  return (
+    <div
+      className="flex items-center gap-3 rounded-xl border border-zinc-200/80 bg-white/80 px-4 py-3 text-sm text-zinc-600 shadow-sm dark:border-zinc-800/70 dark:bg-zinc-950/60 dark:text-zinc-400"
+      role="status"
+      aria-live="polite"
+      aria-busy="true"
+    >
+      <span
+        className="size-5 shrink-0 animate-spin rounded-full border-2 border-zinc-200 border-t-zinc-800 dark:border-zinc-700 dark:border-t-zinc-200"
+        aria-hidden
+      />
+      <span>검색 중입니다…</span>
+    </div>
+  );
+}
+
 function ResultCard({ item }: { item: PangyoTerm }) {
   return (
     <li className="rounded-2xl border border-zinc-200/90 bg-white/95 p-5 shadow-sm dark:border-zinc-800/80 dark:bg-zinc-950/85">
@@ -117,24 +134,18 @@ export function SearchBar() {
           </button>
         </form>
 
-        {loading && (
-          <p className="mt-4 text-left text-sm text-zinc-500 dark:text-zinc-400" role="status">
-            불러오는 중...
-          </p>
-        )}
-
         {!loading && error && (
           <p className="mt-4 text-left text-sm text-red-600 dark:text-red-400" role="alert">
             {error}
           </p>
         )}
-
-        {!loading && !error && searched && results.length === 0 && (
-          <p className="mt-4 text-left text-sm text-zinc-500 dark:text-zinc-400">
-            결과가 없습니다.
-          </p>
-        )}
       </div>
+
+      {loading && (
+        <div className="text-left">
+          <LoadingIndicator />
+        </div>
+      )}
 
       {!loading && results.length > 0 && (
         <ul className="flex max-h-[min(28rem,calc(100dvh-12rem))] flex-col gap-4 overflow-y-auto pr-1 text-left">
@@ -142,6 +153,12 @@ export function SearchBar() {
             <ResultCard key={`${item.term}-${index}`} item={item} />
           ))}
         </ul>
+      )}
+
+      {!loading && !error && searched && results.length === 0 && (
+        <p className="rounded-xl border border-zinc-200/80 bg-white/80 px-4 py-3 text-left text-sm text-zinc-600 shadow-sm dark:border-zinc-800/70 dark:bg-zinc-950/60 dark:text-zinc-400">
+          검색 결과가 없습니다
+        </p>
       )}
     </div>
   );
