@@ -38,8 +38,65 @@ const SAVE_TERM_ENDPOINTS = [
   "/wordbook/save",
   "/terms/save",
 ] as const;
+const GET_MY_WORDS_ENDPOINTS = [
+  "/wordbook/terms",
+  "/wordbook/list",
+  "/wordbook/my-words",
+  "/wordbook",
+] as const;
+const REMOVE_SAVED_TERM_ENDPOINTS = [
+  (termId: number) => `/wordbook/terms/${termId}`,
+  (termId: number) => `/wordbook/remove/${termId}`,
+  (termId: number) => `/wordbook/${termId}`,
+] as const;
 
 const MISSING_TOKEN_ERROR_CODE = "MISSING_ACCESS_TOKEN";
+
+function normalizeSavedWord(raw: unknown): SavedWord | null {
+  if (!raw || typeof raw !== "object") return null;
+  const r = raw as Record<string, unknown>;
+
+  const id =
+    typeof r.id === "number"
+      ? r.id
+      : typeof r.saved_id === "number"
+        ? r.saved_id
+        : typeof r.term_id === "number"
+          ? r.term_id
+          : null;
+  const termId =
+    typeof r.term_id === "number"
+      ? r.term_id
+      : typeof r.termId === "number"
+        ? r.termId
+        : typeof r.id === "number"
+          ? r.id
+          : null;
+
+  if (id == null || termId == null) return null;
+
+  return {
+    id,
+    term_id: termId,
+    term: typeof r.term === "string" ? r.term : "",
+    original_meaning:
+      typeof r.original_meaning === "string" ? r.original_meaning : "",
+    definition: typeof r.definition === "string" ? r.definition : "",
+    example: typeof r.example === "string" ? r.example : "",
+    saved_at: typeof r.saved_at === "string" ? r.saved_at : undefined,
+  };
+}
+
+function normalizeSavedWordsPayload(payload: unknown): SavedWord[] {
+  if (!payload || typeof payload !== "object") return [];
+  const root = payload as Record<string, unknown>;
+  const data = root.data;
+  const list =
+    Array.isArray(data) ? data : Array.isArray(root.results) ? root.results : [];
+  return list
+    .map(normalizeSavedWord)
+    .filter((x): x is SavedWord => x !== null);
+}
 
 /**
  * Save a glossary term to the current user's wordbook.
@@ -120,8 +177,24 @@ export async function saveTerm(termId: number): Promise<SaveTermResult> {
  * GET /wordbook/terms
  */
 export async function getMyWords(): Promise<SavedWord[]> {
-  const { data } = await api.get<MyWordsResponse>("/wordbook/terms");
-  return Array.isArray(data.data) ? data.data : [];
+  let lastError: unknown = null;
+
+  for (const url of GET_MY_WORDS_ENDPOINTS) {
+    try {
+      console.log("[wordbook] getMyWords request", { method: "GET", url });
+      const { data } = await api.get<unknown>(url);
+      console.log("[wordbook] getMyWords response", { url, data });
+      return normalizeSavedWordsPayload(data);
+    } catch (error) {
+      lastError = error;
+      if (!axios.isAxiosError(error)) throw error;
+      const status = error.response?.status;
+      if (status === 404 || status === 405) continue;
+      throw error;
+    }
+  }
+
+  throw lastError ?? new Error("Get my words request failed");
 }
 
 /**
@@ -129,7 +202,21 @@ export async function getMyWords(): Promise<SavedWord[]> {
  * DELETE /wordbook/terms/:termId
  */
 export async function removeSavedTerm(termId: number): Promise<void> {
-  await api.delete<RemoveSavedTermResponse>(`/wordbook/terms/${termId}`);
+  let lastError: unknown = null;
+  for (const makeUrl of REMOVE_SAVED_TERM_ENDPOINTS) {
+    const url = makeUrl(termId);
+    try {
+      await api.delete<RemoveSavedTermResponse>(url);
+      return;
+    } catch (error) {
+      lastError = error;
+      if (!axios.isAxiosError(error)) throw error;
+      const status = error.response?.status;
+      if (status === 404 || status === 405) continue;
+      throw error;
+    }
+  }
+  throw lastError ?? new Error("Remove saved term request failed");
 }
 
 export function isDuplicateSavedTermError(error: unknown): boolean {
