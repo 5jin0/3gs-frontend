@@ -16,6 +16,7 @@ import {
 } from "@/lib/pangyo-terms";
 import {
   getMyWords,
+  getWordbookErrorMessage,
   isDuplicateSavedTermError,
   isUnauthorizedError,
   saveTerm,
@@ -83,7 +84,10 @@ function ResultCard({
       } else if (isUnauthorizedError(e)) {
         setFeedback({ kind: "warn", text: "로그인 후 저장할 수 있습니다." });
       } else {
-        setFeedback({ kind: "error", text: "저장에 실패했습니다." });
+        setFeedback({
+          kind: "error",
+          text: getWordbookErrorMessage(e, "저장에 실패했습니다."),
+        });
       }
     } finally {
       setSaving(false);

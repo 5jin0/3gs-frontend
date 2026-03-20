@@ -1,5 +1,6 @@
 import axios from "axios";
 import { api, type ApiSuccessResponse } from "@/lib/api";
+import { getAccessToken } from "@/lib/auth";
 
 /**
  * A term the user saved to their wordbook (API may add fields; index signature allows extras).
@@ -23,9 +24,18 @@ export type RemoveSavedTermResponse = ApiSuccessResponse<unknown>;
  * POST /wordbook/terms — body: { term_id }
  */
 export async function saveTerm(termId: number): Promise<SavedWord> {
-  const { data } = await api.post<SaveTermResponse>("/wordbook/terms", {
-    term_id: termId,
-  });
+  const token = getAccessToken();
+  console.log("[wordbook] saveTerm request", { termId, token });
+
+  const { data } = await api.post<SaveTermResponse>(
+    "/wordbook/terms",
+    {
+      term_id: termId,
+    },
+    {
+      headers: token ? { Authorization: `Bearer ${token}` } : undefined,
+    },
+  );
   return data.data;
 }
 
@@ -67,4 +77,33 @@ export function isDuplicateSavedTermError(error: unknown): boolean {
 
 export function isUnauthorizedError(error: unknown): boolean {
   return axios.isAxiosError(error) && error.response?.status === 401;
+}
+
+export function getWordbookErrorMessage(
+  error: unknown,
+  fallback = "요청 처리 중 오류가 발생했습니다.",
+): string {
+  if (!axios.isAxiosError(error)) return fallback;
+
+  const data = error.response?.data;
+  if (!data || typeof data !== "object") return fallback;
+
+  const obj = data as Record<string, unknown>;
+  const message = obj.message;
+  if (typeof message === "string" && message.trim()) return message;
+
+  if (Array.isArray(message)) {
+    const merged = message.map(String).join(" ").trim();
+    if (merged) return merged;
+  }
+
+  const detail = obj.detail;
+  if (typeof detail === "string" && detail.trim()) return detail;
+
+  if (Array.isArray(detail)) {
+    const merged = detail.map(String).join(" ").trim();
+    if (merged) return merged;
+  }
+
+  return fallback;
 }
