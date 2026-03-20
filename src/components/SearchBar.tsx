@@ -1,7 +1,17 @@
 "use client";
 
-import { useState, type FormEvent, type KeyboardEvent } from "react";
-import { searchTerms, type PangyoTerm } from "@/lib/pangyo-terms";
+import {
+  useEffect,
+  useState,
+  type FormEvent,
+  type KeyboardEvent,
+} from "react";
+import {
+  getTermSuggestions,
+  searchTerms,
+  type PangyoTerm,
+  type PangyoTermSuggestion,
+} from "@/lib/pangyo-terms";
 
 function LoadingIndicator() {
   return (
@@ -63,12 +73,42 @@ function ResultCard({ item }: { item: PangyoTerm }) {
 
 export function SearchBar() {
   const [keyword, setKeyword] = useState("");
+  const [suggestions, setSuggestions] = useState<PangyoTermSuggestion[]>([]);
+  const [showSuggestions, setShowSuggestions] = useState(false);
   const [results, setResults] = useState<PangyoTerm[]>([]);
   const [loading, setLoading] = useState(false);
   const [searched, setSearched] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
   const canSubmit = keyword.trim().length > 0 && !loading;
+
+  useEffect(() => {
+    const q = keyword.trim();
+    if (q.length < 2) {
+      setSuggestions([]);
+      setShowSuggestions(false);
+      return;
+    }
+
+    let active = true;
+    const timer = setTimeout(async () => {
+      try {
+        const data = await getTermSuggestions(q);
+        if (!active) return;
+        setSuggestions(data);
+        setShowSuggestions(data.length > 0);
+      } catch {
+        if (!active) return;
+        setSuggestions([]);
+        setShowSuggestions(false);
+      }
+    }, 250);
+
+    return () => {
+      active = false;
+      clearTimeout(timer);
+    };
+  }, [keyword]);
 
   async function handleSubmit(e: FormEvent<HTMLFormElement>) {
     e.preventDefault();
@@ -78,6 +118,7 @@ export function SearchBar() {
     if (!q) return;
 
     setKeyword(q);
+    setShowSuggestions(false);
     setLoading(true);
     setError(null);
 
@@ -101,30 +142,55 @@ export function SearchBar() {
     }
   }
 
+  function handleSuggestionClick(term: string) {
+    setKeyword(term);
+    setShowSuggestions(false);
+  }
+
   return (
     <div className="mx-auto mt-10 w-full max-w-xl space-y-5">
       <div className="rounded-2xl border border-zinc-200/80 bg-white/80 p-4 shadow-sm backdrop-blur dark:border-zinc-800/70 dark:bg-zinc-950/60">
-        <form
-          className="flex flex-col gap-3 sm:flex-row sm:items-center"
-          onSubmit={handleSubmit}
-        >
+        <form className="flex flex-col gap-3 sm:flex-row sm:items-start" onSubmit={handleSubmit}>
           <label className="sr-only" htmlFor="keyword">
             검색어
           </label>
-          <input
-            id="keyword"
-            name="keyword"
-            type="text"
-            inputMode="search"
-            enterKeyHint="search"
-            value={keyword}
-            onChange={(e) => setKeyword(e.target.value)}
-            onBlur={() => setKeyword((k) => k.trim())}
-            onKeyDown={handleKeywordKeyDown}
-            disabled={loading}
-            placeholder="예: 커피챗, 얼라인, 바텀업..."
-            className="h-12 w-full rounded-xl border border-zinc-200/80 bg-white px-4 text-sm text-zinc-900 outline-none ring-zinc-400 placeholder:text-zinc-400 transition-shadow focus-visible:ring-2 disabled:cursor-not-allowed disabled:opacity-60 dark:border-zinc-800/70 dark:bg-zinc-950 dark:text-zinc-50 dark:ring-zinc-500 dark:placeholder:text-zinc-500"
-          />
+          <div className="relative w-full">
+            <input
+              id="keyword"
+              name="keyword"
+              type="text"
+              inputMode="search"
+              enterKeyHint="search"
+              value={keyword}
+              onChange={(e) => setKeyword(e.target.value)}
+              onFocus={() => setShowSuggestions(suggestions.length > 0)}
+              onBlur={() => {
+                setKeyword((k) => k.trim());
+                setTimeout(() => setShowSuggestions(false), 100);
+              }}
+              onKeyDown={handleKeywordKeyDown}
+              disabled={loading}
+              placeholder="예: 커피챗, 얼라인, 바텀업..."
+              autoComplete="off"
+              className="h-12 w-full rounded-xl border border-zinc-200/80 bg-white px-4 text-sm text-zinc-900 outline-none ring-zinc-400 placeholder:text-zinc-400 transition-shadow focus-visible:ring-2 disabled:cursor-not-allowed disabled:opacity-60 dark:border-zinc-800/70 dark:bg-zinc-950 dark:text-zinc-50 dark:ring-zinc-500 dark:placeholder:text-zinc-500"
+            />
+            {showSuggestions && suggestions.length > 0 && (
+              <ul className="absolute z-20 mt-2 max-h-60 w-full overflow-y-auto rounded-xl border border-zinc-200/90 bg-white p-1 shadow-lg dark:border-zinc-800/80 dark:bg-zinc-950">
+                {suggestions.map((item) => (
+                  <li key={item.term}>
+                    <button
+                      type="button"
+                      onMouseDown={(e) => e.preventDefault()}
+                      onClick={() => handleSuggestionClick(item.term)}
+                      className="w-full rounded-lg px-3 py-2 text-left text-sm text-zinc-800 transition-colors hover:bg-zinc-100 dark:text-zinc-200 dark:hover:bg-zinc-800"
+                    >
+                      {item.term}
+                    </button>
+                  </li>
+                ))}
+              </ul>
+            )}
+          </div>
           <button
             type="submit"
             disabled={!canSubmit}
