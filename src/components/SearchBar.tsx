@@ -103,7 +103,7 @@ export function SearchBar() {
 
   useEffect(() => {
     const q = keyword.trim();
-    if (q.length < 2) {
+    if (q.length < 1) {
       setSuggestions([]);
       setShowSuggestions(false);
       return;
