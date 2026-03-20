@@ -18,6 +18,7 @@ import {
   getMyWords,
   getWordbookErrorMessage,
   isDuplicateSavedTermError,
+  isMissingTokenError,
   isUnauthorizedError,
   saveTerm,
 } from "@/lib/wordbook";
@@ -81,6 +82,8 @@ function ResultCard({
       if (isDuplicateSavedTermError(e)) {
         onSaved(termId);
         setFeedback({ kind: "warn", text: "이미 저장된 단어입니다." });
+      } else if (isMissingTokenError(e)) {
+        setFeedback({ kind: "warn", text: "로그인 후 저장할 수 있습니다." });
       } else if (isUnauthorizedError(e)) {
         setFeedback({ kind: "warn", text: "로그인 후 저장할 수 있습니다." });
       } else {

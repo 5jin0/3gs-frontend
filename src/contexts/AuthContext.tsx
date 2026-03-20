@@ -6,7 +6,6 @@ import {
   clearAuth,
   getAccessToken,
   getUser,
-  isLoggedIn,
 } from "@/lib/auth";
 import {
   createContext,
@@ -54,7 +53,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
   const value = useMemo<AuthContextValue>(
     () => ({
-      isLoggedIn: isLoggedIn(),
+      isLoggedIn: Boolean(accessToken),
       accessToken,
       user,
       refreshAuth,

@@ -24,6 +24,8 @@ const SAVE_TERM_ENDPOINTS = [
   "/terms/save",
 ] as const;
 
+const MISSING_TOKEN_ERROR_CODE = "MISSING_ACCESS_TOKEN";
+
 /**
  * Save a glossary term to the current user's wordbook.
  * POST /wordbook/terms — body: { term_id }
@@ -31,6 +33,20 @@ const SAVE_TERM_ENDPOINTS = [
 export async function saveTerm(termId: number): Promise<SavedWord> {
   const token = getAccessToken();
   const body = { term_id: termId };
+  const requestHeaders = token ? { Authorization: `Bearer ${token}` } : {};
+
+  if (!token) {
+    console.log("[wordbook] saveTerm request", {
+      method: "POST",
+      url: SAVE_TERM_ENDPOINTS[0],
+      body,
+      token,
+      headers: requestHeaders,
+    });
+    const error = new Error(MISSING_TOKEN_ERROR_CODE);
+    (error as Error & { code?: string }).code = MISSING_TOKEN_ERROR_CODE;
+    throw error;
+  }
 
   let lastError: unknown = null;
 
@@ -41,10 +57,11 @@ export async function saveTerm(termId: number): Promise<SavedWord> {
         url,
         body,
         token,
+        headers: requestHeaders,
       });
 
       const { data } = await api.post<SaveTermResponse>(url, body, {
-        headers: token ? { Authorization: `Bearer ${token}` } : undefined,
+        headers: requestHeaders,
       });
 
       return data.data;
@@ -103,6 +120,14 @@ export function isDuplicateSavedTermError(error: unknown): boolean {
 
 export function isUnauthorizedError(error: unknown): boolean {
   return axios.isAxiosError(error) && error.response?.status === 401;
+}
+
+export function isMissingTokenError(error: unknown): boolean {
+  return (
+    error instanceof Error &&
+    ((error as Error & { code?: string }).code === MISSING_TOKEN_ERROR_CODE ||
+      error.message === MISSING_TOKEN_ERROR_CODE)
+  );
 }
 
 export function getWordbookErrorMessage(

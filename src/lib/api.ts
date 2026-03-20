@@ -43,6 +43,8 @@ export type LoginResponse = {
   user: AuthUser;
 };
 
+type LoginEnvelope = ApiSuccessResponse<LoginResponse>;
+
 function assertApiBaseUrl(): string | null {
   if (!process.env.NEXT_PUBLIC_API_BASE_URL) {
     // This prevents a hard crash when env is not configured.
@@ -64,7 +66,19 @@ export async function login(
 
   const payload: LoginRequest = { username, password };
 
-  const res = await api.post<LoginResponse>("/auth/login", payload);
-  return res.data;
+  const res = await api.post<LoginResponse | LoginEnvelope>("/auth/login", payload);
+  const body = res.data;
+
+  if (
+    body &&
+    typeof body === "object" &&
+    "success" in body &&
+    "data" in body &&
+    (body as LoginEnvelope).success === true
+  ) {
+    return (body as LoginEnvelope).data;
+  }
+
+  return body as LoginResponse;
 }
 

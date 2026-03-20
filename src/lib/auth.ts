@@ -10,7 +10,10 @@ function canUseLocalStorage() {
 
 export function getAccessToken(): string | null {
   if (!canUseLocalStorage()) return null;
-  return window.localStorage.getItem(ACCESS_TOKEN_KEY);
+  const token = window.localStorage.getItem(ACCESS_TOKEN_KEY);
+  // Guard against malformed persisted values.
+  if (!token || token === "undefined" || token === "null") return null;
+  return token;
 }
 
 export function isLoggedIn(): boolean {
@@ -32,6 +35,13 @@ export function getUser(): AuthUser | null {
 
 export function setAuth(accessToken: string, user: AuthUser): void {
   if (!canUseLocalStorage()) return;
+  if (!accessToken || accessToken === "undefined" || accessToken === "null") {
+    // Avoid persisting invalid tokens that make UI look logged-in.
+    window.localStorage.removeItem(ACCESS_TOKEN_KEY);
+    window.localStorage.removeItem(USER_KEY);
+    window.dispatchEvent(new Event(AUTH_CHANGE_EVENT));
+    return;
+  }
 
   window.localStorage.setItem(ACCESS_TOKEN_KEY, accessToken);
   window.localStorage.setItem(USER_KEY, JSON.stringify(user));
