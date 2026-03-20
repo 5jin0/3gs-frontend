@@ -18,6 +18,11 @@ export type SavedWord = {
 export type SaveTermResponse = ApiSuccessResponse<SavedWord>;
 export type MyWordsResponse = ApiSuccessResponse<SavedWord[]>;
 export type RemoveSavedTermResponse = ApiSuccessResponse<unknown>;
+const SAVE_TERM_ENDPOINTS = [
+  "/wordbook/terms",
+  "/wordbook/save",
+  "/terms/save",
+] as const;
 
 /**
  * Save a glossary term to the current user's wordbook.
@@ -25,18 +30,39 @@ export type RemoveSavedTermResponse = ApiSuccessResponse<unknown>;
  */
 export async function saveTerm(termId: number): Promise<SavedWord> {
   const token = getAccessToken();
-  console.log("[wordbook] saveTerm request", { termId, token });
+  const body = { term_id: termId };
 
-  const { data } = await api.post<SaveTermResponse>(
-    "/wordbook/terms",
-    {
-      term_id: termId,
-    },
-    {
-      headers: token ? { Authorization: `Bearer ${token}` } : undefined,
-    },
-  );
-  return data.data;
+  let lastError: unknown = null;
+
+  for (const url of SAVE_TERM_ENDPOINTS) {
+    try {
+      console.log("[wordbook] saveTerm request", {
+        method: "POST",
+        url,
+        body,
+        token,
+      });
+
+      const { data } = await api.post<SaveTermResponse>(url, body, {
+        headers: token ? { Authorization: `Bearer ${token}` } : undefined,
+      });
+
+      return data.data;
+    } catch (error) {
+      lastError = error;
+      if (!axios.isAxiosError(error)) throw error;
+
+      const status = error.response?.status;
+      // Endpoint mismatch: try next candidate.
+      if (status === 404 || status === 405) {
+        continue;
+      }
+
+      throw error;
+    }
+  }
+
+  throw lastError ?? new Error("Save term request failed");
 }
 
 /**
