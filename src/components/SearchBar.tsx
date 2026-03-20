@@ -7,12 +7,24 @@ import {
   type FormEvent,
   type KeyboardEvent,
 } from "react";
+import { useAuth } from "@/contexts/AuthContext";
 import {
   getTermSuggestions,
   searchTerms,
   type PangyoTerm,
   type PangyoTermSuggestion,
 } from "@/lib/pangyo-terms";
+import {
+  getMyWords,
+  isDuplicateSavedTermError,
+  isUnauthorizedError,
+  saveTerm,
+} from "@/lib/wordbook";
+
+function getTermIdForSave(item: PangyoTerm): number | null {
+  const id = item.term_id ?? item.id;
+  return id != null && Number.isFinite(id) ? id : null;
+}
 
 function LoadingIndicator() {
   return (
@@ -31,7 +43,62 @@ function LoadingIndicator() {
   );
 }
 
-function ResultCard({ item }: { item: PangyoTerm }) {
+type SaveFeedback = {
+  text: string;
+  kind: "success" | "warn" | "error";
+};
+
+function ResultCard({
+  item,
+  termId,
+  isSaved,
+  onSaved,
+}: {
+  item: PangyoTerm;
+  termId: number | null;
+  isSaved: boolean;
+  onSaved: (termId: number) => void;
+}) {
+  const [saving, setSaving] = useState(false);
+  const [feedback, setFeedback] = useState<SaveFeedback | null>(null);
+
+  useEffect(() => {
+    if (!feedback) return;
+    const timer = window.setTimeout(() => setFeedback(null), 3500);
+    return () => clearTimeout(timer);
+  }, [feedback]);
+
+  async function handleSave() {
+    if (termId == null || isSaved || saving) return;
+    setSaving(true);
+    setFeedback(null);
+    try {
+      const saved = await saveTerm(termId);
+      onSaved(saved.term_id);
+      setFeedback({ kind: "success", text: "단어장에 저장했습니다." });
+    } catch (e) {
+      if (isDuplicateSavedTermError(e)) {
+        onSaved(termId);
+        setFeedback({ kind: "warn", text: "이미 저장된 단어입니다." });
+      } else if (isUnauthorizedError(e)) {
+        setFeedback({ kind: "warn", text: "로그인 후 저장할 수 있습니다." });
+      } else {
+        setFeedback({ kind: "error", text: "저장에 실패했습니다." });
+      }
+    } finally {
+      setSaving(false);
+    }
+  }
+
+  const feedbackClass =
+    feedback?.kind === "success"
+      ? "text-emerald-700 dark:text-emerald-400"
+      : feedback?.kind === "warn"
+        ? "text-amber-800 dark:text-amber-300"
+        : feedback?.kind === "error"
+          ? "text-red-600 dark:text-red-400"
+          : "";
+
   return (
     <li className="rounded-2xl border border-zinc-200/90 bg-white/95 p-5 shadow-sm dark:border-zinc-800/80 dark:bg-zinc-950/85">
       <dl className="space-y-4 text-sm">
@@ -68,11 +135,39 @@ function ResultCard({ item }: { item: PangyoTerm }) {
           </dd>
         </div>
       </dl>
+      <div className="mt-4 flex flex-col items-stretch gap-2 border-t border-zinc-200/80 pt-4 dark:border-zinc-800/70">
+        <div className="flex justify-end">
+          <button
+            type="button"
+            onClick={handleSave}
+            disabled={termId == null || isSaved || saving}
+            className="inline-flex h-9 items-center justify-center rounded-lg border border-zinc-200 bg-white px-3 text-xs font-medium text-zinc-900 shadow-sm transition-colors hover:bg-zinc-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-zinc-400 focus-visible:ring-offset-2 focus-visible:ring-offset-white disabled:cursor-not-allowed disabled:opacity-50 dark:border-zinc-800 dark:bg-zinc-950 dark:text-zinc-50 dark:hover:bg-zinc-900 dark:focus-visible:ring-zinc-500 dark:focus-visible:ring-offset-zinc-950"
+          >
+            {saving ? "저장 중…" : "단어 저장"}
+          </button>
+        </div>
+        {termId == null && (
+          <p className="text-xs text-zinc-500 dark:text-zinc-400">
+            저장할 수 없습니다. (용어 id가 없음)
+          </p>
+        )}
+        {isSaved && (
+          <p className="text-xs text-zinc-500 dark:text-zinc-400" role="status">
+            이미 저장된 단어입니다.
+          </p>
+        )}
+        {feedback && (
+          <p className={`text-xs ${feedbackClass}`} role="status">
+            {feedback.text}
+          </p>
+        )}
+      </div>
     </li>
   );
 }
 
 export function SearchBar() {
+  const { isLoggedIn } = useAuth();
   const suggestionsContainerRef = useRef<HTMLDivElement | null>(null);
   const suggestionsCacheRef = useRef(new Map<string, PangyoTermSuggestion[]>());
   const inFlightSuggestionKeywordRef = useRef<string | null>(null);
@@ -83,8 +178,36 @@ export function SearchBar() {
   const [loading, setLoading] = useState(false);
   const [searched, setSearched] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [savedTermIds, setSavedTermIds] = useState<Set<number>>(
+    () => new Set(),
+  );
 
   const canSubmit = keyword.trim().length > 0 && !loading;
+
+  useEffect(() => {
+    if (!isLoggedIn) {
+      setSavedTermIds(new Set());
+      return;
+    }
+    if (results.length === 0) {
+      setSavedTermIds(new Set());
+      return;
+    }
+
+    let cancelled = false;
+    getMyWords()
+      .then((words) => {
+        if (cancelled) return;
+        setSavedTermIds(new Set(words.map((w) => w.term_id)));
+      })
+      .catch(() => {
+        if (!cancelled) setSavedTermIds(new Set());
+      });
+
+    return () => {
+      cancelled = true;
+    };
+  }, [isLoggedIn, results]);
 
   useEffect(() => {
     function handleDocumentMouseDown(event: MouseEvent) {
@@ -250,9 +373,21 @@ export function SearchBar() {
 
       {!loading && results.length > 0 && (
         <ul className="flex max-h-[min(28rem,calc(100dvh-12rem))] flex-col gap-4 overflow-y-auto pr-1 text-left">
-          {results.map((item, index) => (
-            <ResultCard key={`${item.term}-${index}`} item={item} />
-          ))}
+          {results.map((item, index) => {
+            const termId = getTermIdForSave(item);
+            const isSaved = termId != null && savedTermIds.has(termId);
+            return (
+              <ResultCard
+                key={termId != null ? `term-${termId}` : `${item.term}-${index}`}
+                item={item}
+                termId={termId}
+                isSaved={isSaved}
+                onSaved={(id) =>
+                  setSavedTermIds((prev) => new Set([...prev, id]))
+                }
+              />
+            );
+          })}
         </ul>
       )}
 

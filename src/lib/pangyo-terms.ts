@@ -2,6 +2,9 @@ import { api, type ApiSuccessResponse } from "@/lib/api";
 
 /** Single term row returned from the Pangyo glossary search endpoint. */
 export type PangyoTerm = {
+  /** Glossary term id (when provided by the API). */
+  id?: number;
+  term_id?: number;
   term: string;
   original_meaning: string;
   definition: string;
@@ -59,11 +62,23 @@ function asString(v: unknown): string {
   return "";
 }
 
+function asOptionalId(v: unknown): number | undefined {
+  if (typeof v === "number" && Number.isFinite(v)) return v;
+  if (typeof v === "string" && v.trim() !== "") {
+    const n = Number(v);
+    if (Number.isFinite(n)) return n;
+  }
+  return undefined;
+}
+
 /** Map backend field variants onto our PangyoTerm shape. */
 function normalizeTerm(raw: unknown): PangyoTerm | null {
   if (!raw || typeof raw !== "object") return null;
 
   const r = raw as Record<string, unknown>;
+
+  const termId = asOptionalId(r.term_id ?? r.termId);
+  const rowId = asOptionalId(r.id);
 
   const term = asString(
     r.term ?? r.word ?? r.name ?? r.title ?? r.keyword ?? r.label,
@@ -86,6 +101,8 @@ function normalizeTerm(raw: unknown): PangyoTerm | null {
   }
 
   return {
+    ...(termId != null ? { term_id: termId } : {}),
+    ...(rowId != null ? { id: rowId } : {}),
     term: term || "—",
     original_meaning,
     definition,

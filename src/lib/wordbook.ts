@@ -1,3 +1,4 @@
+import axios from "axios";
 import { api, type ApiSuccessResponse } from "@/lib/api";
 
 /**
@@ -43,4 +44,27 @@ export async function getMyWords(): Promise<SavedWord[]> {
  */
 export async function removeSavedTerm(termId: number): Promise<void> {
   await api.delete<RemoveSavedTermResponse>(`/wordbook/terms/${termId}`);
+}
+
+export function isDuplicateSavedTermError(error: unknown): boolean {
+  if (!axios.isAxiosError(error)) return false;
+  const status = error.response?.status;
+  if (status === 409) return true;
+
+  const data = error.response?.data;
+  if (!data || typeof data !== "object") return false;
+
+  const detail = (data as { detail?: unknown }).detail;
+  const text =
+    typeof detail === "string"
+      ? detail
+      : Array.isArray(detail)
+        ? detail.map(String).join(" ")
+        : "";
+
+  return /이미|중복|already|duplicate/i.test(text);
+}
+
+export function isUnauthorizedError(error: unknown): boolean {
+  return axios.isAxiosError(error) && error.response?.status === 401;
 }
