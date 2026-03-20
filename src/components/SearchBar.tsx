@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, type FormEvent } from "react";
+import { useState, type FormEvent, type KeyboardEvent } from "react";
 import { searchTerms, type PangyoTerm } from "@/lib/pangyo-terms";
 
 function ResultCard({ item }: { item: PangyoTerm }) {
@@ -51,16 +51,16 @@ export function SearchBar() {
   const [searched, setSearched] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
+  const canSubmit = keyword.trim().length > 0 && !loading;
+
   async function handleSubmit(e: FormEvent<HTMLFormElement>) {
     e.preventDefault();
-    const q = keyword.trim();
-    if (!q) {
-      setResults([]);
-      setSearched(true);
-      setError(null);
-      return;
-    }
+    if (loading) return;
 
+    const q = keyword.trim();
+    if (!q) return;
+
+    setKeyword(q);
     setLoading(true);
     setError(null);
 
@@ -73,6 +73,14 @@ export function SearchBar() {
     } finally {
       setLoading(false);
       setSearched(true);
+    }
+  }
+
+  function handleKeywordKeyDown(e: KeyboardEvent<HTMLInputElement>) {
+    if (e.key !== "Enter") return;
+    // Avoid submitting while IME composition is active (e.g. Korean input).
+    if (e.nativeEvent.isComposing) {
+      e.preventDefault();
     }
   }
 
@@ -91,15 +99,18 @@ export function SearchBar() {
             name="keyword"
             type="text"
             inputMode="search"
+            enterKeyHint="search"
             value={keyword}
             onChange={(e) => setKeyword(e.target.value)}
+            onBlur={() => setKeyword((k) => k.trim())}
+            onKeyDown={handleKeywordKeyDown}
             disabled={loading}
             placeholder="예: 커피챗, 얼라인, 바텀업..."
             className="h-12 w-full rounded-xl border border-zinc-200/80 bg-white px-4 text-sm text-zinc-900 outline-none ring-zinc-400 placeholder:text-zinc-400 transition-shadow focus-visible:ring-2 disabled:cursor-not-allowed disabled:opacity-60 dark:border-zinc-800/70 dark:bg-zinc-950 dark:text-zinc-50 dark:ring-zinc-500 dark:placeholder:text-zinc-500"
           />
           <button
             type="submit"
-            disabled={loading}
+            disabled={!canSubmit}
             className="inline-flex h-12 w-full shrink-0 items-center justify-center rounded-xl bg-zinc-900 px-5 text-sm font-medium text-white shadow-sm transition-colors hover:bg-zinc-800 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-zinc-400 focus-visible:ring-offset-2 focus-visible:ring-offset-white active:translate-y-px disabled:cursor-not-allowed disabled:opacity-60 whitespace-nowrap sm:w-auto dark:bg-zinc-50 dark:text-zinc-900 dark:hover:bg-zinc-200 dark:focus-visible:ring-zinc-500 dark:focus-visible:ring-offset-zinc-950"
           >
             {loading ? "검색 중..." : "검색"}
