@@ -75,9 +75,15 @@ function ResultCard({
     setSaving(true);
     setFeedback(null);
     try {
-      const saved = await saveTerm(termId);
-      onSaved(saved.term_id);
-      setFeedback({ kind: "success", text: "단어장에 저장했습니다." });
+      const result = await saveTerm(termId);
+      onSaved(result.termId);
+      if (result.alreadySaved) {
+        setFeedback({ kind: "warn", text: "이미 저장된 단어입니다." });
+      } else if (result.saved) {
+        setFeedback({ kind: "success", text: "단어장에 저장되었습니다" });
+      } else {
+        setFeedback({ kind: "error", text: "저장 결과를 확인할 수 없습니다." });
+      }
     } catch (e) {
       if (isDuplicateSavedTermError(e)) {
         onSaved(termId);
@@ -158,7 +164,7 @@ function ResultCard({
             저장할 수 없습니다. (용어 id가 없음)
           </p>
         )}
-        {isSaved && (
+        {isSaved && !feedback && (
           <p className="text-xs text-zinc-500 dark:text-zinc-400" role="status">
             이미 저장된 단어입니다.
           </p>

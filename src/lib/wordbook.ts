@@ -18,6 +18,21 @@ export type SavedWord = {
 export type SaveTermResponse = ApiSuccessResponse<SavedWord>;
 export type MyWordsResponse = ApiSuccessResponse<SavedWord[]>;
 export type RemoveSavedTermResponse = ApiSuccessResponse<unknown>;
+export type SaveTermApiData = {
+  saved?: boolean;
+  already_saved?: boolean;
+  term_id?: number;
+  termId?: number;
+  id?: number;
+} & Partial<SavedWord>;
+
+export type SaveTermApiResponse = ApiSuccessResponse<SaveTermApiData>;
+export type SaveTermResult = {
+  termId: number;
+  saved: boolean;
+  alreadySaved: boolean;
+  item?: SavedWord;
+};
 const SAVE_TERM_ENDPOINTS = [
   "/wordbook/terms",
   "/wordbook/save",
@@ -30,7 +45,7 @@ const MISSING_TOKEN_ERROR_CODE = "MISSING_ACCESS_TOKEN";
  * Save a glossary term to the current user's wordbook.
  * POST /wordbook/terms — body: { term_id }
  */
-export async function saveTerm(termId: number): Promise<SavedWord> {
+export async function saveTerm(termId: number): Promise<SaveTermResult> {
   const token = getAccessToken();
   const body = { term_id: termId };
   const requestHeaders = token ? { Authorization: `Bearer ${token}` } : {};
@@ -60,11 +75,29 @@ export async function saveTerm(termId: number): Promise<SavedWord> {
         headers: requestHeaders,
       });
 
-      const { data } = await api.post<SaveTermResponse>(url, body, {
+      const { data } = await api.post<SaveTermApiResponse>(url, body, {
         headers: requestHeaders,
       });
+      console.log("[wordbook] saveTerm response", { url, data });
 
-      return data.data;
+      const payload = data.data ?? {};
+      const savedFlag = payload.saved === true;
+      const alreadySavedFlag = payload.already_saved === true;
+      const resolvedTermId =
+        payload.term_id ??
+        payload.termId ??
+        (typeof payload.id === "number" ? payload.id : undefined) ??
+        termId;
+
+      return {
+        termId: resolvedTermId,
+        saved: savedFlag,
+        alreadySaved: alreadySavedFlag,
+        item:
+          typeof payload.term === "string" && typeof payload.term_id === "number"
+            ? (payload as SavedWord)
+            : undefined,
+      };
     } catch (error) {
       lastError = error;
       if (!axios.isAxiosError(error)) throw error;

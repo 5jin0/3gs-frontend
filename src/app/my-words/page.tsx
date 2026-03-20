@@ -42,7 +42,7 @@ export default function MyWordsPage() {
   useEffect(() => {
     let cancelled = false;
 
-    (async () => {
+    async function fetchWords() {
       try {
         const data = await getMyWords();
         if (!cancelled) {
@@ -57,10 +57,25 @@ export default function MyWordsPage() {
       } finally {
         if (!cancelled) setLoading(false);
       }
-    })();
+    }
+
+    const onFocus = () => {
+      void fetchWords();
+    };
+    const onVisibilityChange = () => {
+      if (document.visibilityState === "visible") {
+        void fetchWords();
+      }
+    };
+
+    void fetchWords();
+    window.addEventListener("focus", onFocus);
+    document.addEventListener("visibilitychange", onVisibilityChange);
 
     return () => {
       cancelled = true;
+      window.removeEventListener("focus", onFocus);
+      document.removeEventListener("visibilitychange", onVisibilityChange);
     };
   }, []);
 
