@@ -8,6 +8,17 @@ export type PangyoTerm = {
   example: string;
 };
 
+export type ApiSuccessResponse<T> = {
+  success: true;
+  data: T;
+};
+
+export type PangyoTermSuggestion = {
+  term: string;
+};
+
+export type TermSuggestionsResponse = ApiSuccessResponse<PangyoTermSuggestion[]>;
+
 const LIST_KEYS = [
   "data",
   "results",
@@ -100,4 +111,18 @@ export async function searchTerms(keyword: string): Promise<PangyoTerm[]> {
     params: { keyword },
   });
   return normalizeResponse(data);
+}
+
+/**
+ * Get Pangyo term suggestions by keyword.
+ * GET /terms/suggestions?keyword=...
+ */
+export async function getTermSuggestions(
+  keyword: string,
+): Promise<PangyoTermSuggestion[]> {
+  const { data } = await api.get<TermSuggestionsResponse>("/terms/suggestions", {
+    params: { keyword },
+  });
+
+  return Array.isArray(data.data) ? data.data : [];
 }
