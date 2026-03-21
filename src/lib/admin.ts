@@ -2,12 +2,24 @@ import axios from "axios";
 import { api, type ApiSuccessResponse } from "@/lib/api";
 
 const ADMIN_OVERVIEW_ENDPOINT = "/admin/overview";
+const ADMIN_USERS_ENDPOINT = "/admin/users";
 
 /** Loose shape so different backend field names still render. */
 export type AdminOverview = {
   user_count?: number;
   term_count?: number;
   saved_term_count?: number;
+  [key: string]: unknown;
+};
+
+/** User row from admin user list endpoints. */
+export type AdminUser = {
+  id: string | number;
+  username?: string;
+  name?: string;
+  email?: string;
+  is_admin?: boolean;
+  created_at?: string;
   [key: string]: unknown;
 };
 
@@ -43,6 +55,36 @@ function unwrapOverview(body: unknown): AdminOverview | null {
   return null;
 }
 
+function unwrapDataArray<T>(body: unknown): T[] | null {
+  if (Array.isArray(body)) return body as T[];
+
+  if (!body || typeof body !== "object") return null;
+  const top = body as Record<string, unknown>;
+
+  if ("success" in top && top.success === false) return null;
+
+  if ("success" in top && top.success === true && "data" in top) {
+    const d = top.data;
+    if (Array.isArray(d)) return d as T[];
+    if (d && typeof d === "object" && !Array.isArray(d)) {
+      const inner = d as Record<string, unknown>;
+      for (const key of ["users", "items", "results"] as const) {
+        const v = inner[key];
+        if (Array.isArray(v)) return v as T[];
+      }
+    }
+  }
+
+  if ("data" in top && Array.isArray(top.data)) return top.data as T[];
+
+  for (const key of ["users", "items", "results"] as const) {
+    const v = top[key];
+    if (Array.isArray(v)) return v as T[];
+  }
+
+  return null;
+}
+
 /** Aggregated stats for the admin dashboard (admin-only endpoint). */
 export async function fetchAdminOverview(): Promise<AdminOverview> {
   const res = await api.get<unknown>(ADMIN_OVERVIEW_ENDPOINT);
@@ -58,5 +100,19 @@ export function isAdminForbiddenError(error: unknown): boolean {
 }
 
 export function isAdminOverviewNotFoundError(error: unknown): boolean {
+  return axios.isAxiosError(error) && error.response?.status === 404;
+}
+
+/** Paginated or full user list for admin (admin-only). */
+export async function fetchAdminUsers(): Promise<AdminUser[]> {
+  const res = await api.get<unknown>(ADMIN_USERS_ENDPOINT);
+  const list = unwrapDataArray<AdminUser>(res.data);
+  if (!list) {
+    throw new Error("Invalid admin users response");
+  }
+  return list;
+}
+
+export function isAdminUsersNotFoundError(error: unknown): boolean {
   return axios.isAxiosError(error) && error.response?.status === 404;
 }
