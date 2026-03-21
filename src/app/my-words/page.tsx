@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState, type KeyboardEvent } from "react";
+import { useEffect, useMemo, useState, type KeyboardEvent } from "react";
 import {
   getMyWords,
   isUnauthorizedError,
@@ -98,6 +98,26 @@ export default function MyWordsPage() {
     setQuery("");
   }
 
+  const normalizedQuery = query.trim().toLowerCase();
+
+  const filteredWords = useMemo(() => {
+    if (!normalizedQuery) return words;
+    return words.filter((item) => {
+      const haystack = [
+        item.term,
+        item.original_meaning,
+        item.definition,
+        item.example,
+      ]
+        .filter((v): v is string => typeof v === "string" && v.trim().length > 0)
+        .join(" ")
+        .toLowerCase();
+      return haystack.includes(normalizedQuery);
+    });
+  }, [normalizedQuery, words]);
+
+  const hasSearch = normalizedQuery.length > 0;
+
   return (
     <main className="relative mx-auto min-h-[calc(100dvh-3.5rem)] w-full max-w-5xl px-6 py-10">
       <div
@@ -172,6 +192,11 @@ export default function MyWordsPage() {
 
       {!loading && !loadError && !authError && words.length > 0 && (
         <ul className="mx-auto flex max-w-2xl flex-col gap-4">
+          {hasSearch ? (
+            <p className="text-sm text-zinc-600 dark:text-zinc-400" role="status" aria-live="polite">
+              총 {words.length}개 / 검색 결과 {filteredWords.length}개
+            </p>
+          ) : null}
           {removeError && (
             <p
               className="text-sm text-red-600 dark:text-red-400"
@@ -180,57 +205,63 @@ export default function MyWordsPage() {
               {removeError}
             </p>
           )}
-          {words.map((item) => (
-            <li
-              key={item.id}
-              className="rounded-2xl border border-zinc-200/90 bg-white/95 p-5 shadow-sm dark:border-zinc-800/80 dark:bg-zinc-950/85"
-            >
-              <dl className="space-y-4 text-sm">
-                <div>
-                  <dt className="text-xs font-medium uppercase tracking-wide text-zinc-500 dark:text-zinc-400">
-                    용어
-                  </dt>
-                  <dd className="mt-1.5 text-lg font-semibold tracking-tight text-zinc-900 dark:text-zinc-50">
-                    {item.term}
-                  </dd>
+          {filteredWords.length === 0 ? (
+            <p className="rounded-xl border border-zinc-200/80 bg-white/80 px-4 py-3 text-left text-sm text-zinc-600 shadow-sm dark:border-zinc-800/70 dark:bg-zinc-950/60 dark:text-zinc-400">
+              검색 결과가 없습니다
+            </p>
+          ) : (
+            filteredWords.map((item) => (
+              <li
+                key={item.id}
+                className="rounded-2xl border border-zinc-200/90 bg-white/95 p-5 shadow-sm dark:border-zinc-800/80 dark:bg-zinc-950/85"
+              >
+                <dl className="space-y-4 text-sm">
+                  <div>
+                    <dt className="text-xs font-medium uppercase tracking-wide text-zinc-500 dark:text-zinc-400">
+                      용어
+                    </dt>
+                    <dd className="mt-1.5 text-lg font-semibold tracking-tight text-zinc-900 dark:text-zinc-50">
+                      {item.term}
+                    </dd>
+                  </div>
+                  <div>
+                    <dt className="text-xs font-medium uppercase tracking-wide text-zinc-500 dark:text-zinc-400">
+                      원래 의미
+                    </dt>
+                    <dd className="mt-1.5 leading-relaxed text-zinc-700 dark:text-zinc-300">
+                      {item.original_meaning || "—"}
+                    </dd>
+                  </div>
+                  <div>
+                    <dt className="text-xs font-medium uppercase tracking-wide text-zinc-500 dark:text-zinc-400">
+                      정의
+                    </dt>
+                    <dd className="mt-1.5 leading-relaxed text-zinc-800 dark:text-zinc-200">
+                      {item.definition || "—"}
+                    </dd>
+                  </div>
+                  <div>
+                    <dt className="text-xs font-medium uppercase tracking-wide text-zinc-500 dark:text-zinc-400">
+                      예시
+                    </dt>
+                    <dd className="mt-1.5 rounded-lg border-l-2 border-zinc-300 bg-zinc-50/80 py-2 pl-3 pr-2 leading-relaxed text-zinc-700 dark:border-zinc-600 dark:bg-zinc-900/50 dark:text-zinc-300">
+                      {item.example || "—"}
+                    </dd>
+                  </div>
+                </dl>
+                <div className="mt-4 flex justify-end border-t border-zinc-200/80 pt-4 dark:border-zinc-800/70">
+                  <button
+                    type="button"
+                    onClick={() => handleRemove(item.term_id)}
+                    disabled={removingTermId !== null}
+                    className="inline-flex h-9 items-center justify-center rounded-lg border border-zinc-200 bg-white px-3 text-xs font-medium text-zinc-700 shadow-sm transition-colors hover:bg-zinc-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-zinc-400 focus-visible:ring-offset-2 focus-visible:ring-offset-white disabled:cursor-not-allowed disabled:opacity-50 dark:border-zinc-700 dark:bg-zinc-950 dark:text-zinc-300 dark:hover:bg-zinc-900 dark:focus-visible:ring-zinc-500 dark:focus-visible:ring-offset-zinc-950"
+                  >
+                    {removingTermId === item.term_id ? "처리 중…" : "저장 취소"}
+                  </button>
                 </div>
-                <div>
-                  <dt className="text-xs font-medium uppercase tracking-wide text-zinc-500 dark:text-zinc-400">
-                    원래 의미
-                  </dt>
-                  <dd className="mt-1.5 leading-relaxed text-zinc-700 dark:text-zinc-300">
-                    {item.original_meaning || "—"}
-                  </dd>
-                </div>
-                <div>
-                  <dt className="text-xs font-medium uppercase tracking-wide text-zinc-500 dark:text-zinc-400">
-                    정의
-                  </dt>
-                  <dd className="mt-1.5 leading-relaxed text-zinc-800 dark:text-zinc-200">
-                    {item.definition || "—"}
-                  </dd>
-                </div>
-                <div>
-                  <dt className="text-xs font-medium uppercase tracking-wide text-zinc-500 dark:text-zinc-400">
-                    예시
-                  </dt>
-                  <dd className="mt-1.5 rounded-lg border-l-2 border-zinc-300 bg-zinc-50/80 py-2 pl-3 pr-2 leading-relaxed text-zinc-700 dark:border-zinc-600 dark:bg-zinc-900/50 dark:text-zinc-300">
-                    {item.example || "—"}
-                  </dd>
-                </div>
-              </dl>
-              <div className="mt-4 flex justify-end border-t border-zinc-200/80 pt-4 dark:border-zinc-800/70">
-                <button
-                  type="button"
-                  onClick={() => handleRemove(item.term_id)}
-                  disabled={removingTermId !== null}
-                  className="inline-flex h-9 items-center justify-center rounded-lg border border-zinc-200 bg-white px-3 text-xs font-medium text-zinc-700 shadow-sm transition-colors hover:bg-zinc-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-zinc-400 focus-visible:ring-offset-2 focus-visible:ring-offset-white disabled:cursor-not-allowed disabled:opacity-50 dark:border-zinc-700 dark:bg-zinc-950 dark:text-zinc-300 dark:hover:bg-zinc-900 dark:focus-visible:ring-zinc-500 dark:focus-visible:ring-offset-zinc-950"
-                >
-                  {removingTermId === item.term_id ? "처리 중…" : "저장 취소"}
-                </button>
-              </div>
-            </li>
-          ))}
+              </li>
+            ))
+          )}
         </ul>
       )}
     </main>
