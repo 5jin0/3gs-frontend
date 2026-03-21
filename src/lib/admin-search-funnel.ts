@@ -92,8 +92,14 @@ function normalizeFunnelMetrics(raw: Record<string, unknown>): SearchFunnelMetri
 /** Percentage string for display. Values in (0, 1] treated as 비율, 그 외는 이미 퍼센트 값으로 간주. */
 export function formatFunnelRate(value: number | undefined): string {
   if (value == null || !Number.isFinite(value)) return "—";
-  const pct = value > 0 && value <= 1 ? value * 100 : value;
+  const pct = normalizeFunnelRatePercent(value).value;
   return `${pct.toFixed(1)}%`;
+}
+
+export function normalizeFunnelRatePercent(value: number): { value: number; clamped: boolean } {
+  const raw = value > 0 && value <= 1 ? value * 100 : value;
+  const clamped = Math.min(100, Math.max(0, raw));
+  return { value: clamped, clamped: clamped !== raw };
 }
 
 export async function fetchSearchFunnel(

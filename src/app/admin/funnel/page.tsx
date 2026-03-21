@@ -10,6 +10,7 @@ import { adminAnalyticsNotFoundMessage } from "@/lib/admin-analytics-paths";
 import {
   fetchSearchFunnel,
   formatFunnelRate,
+  normalizeFunnelRatePercent,
   isSearchFunnelNotFoundError,
   SEARCH_FUNNEL_TOOLTIPS,
   type SearchFunnelMetrics,
@@ -60,6 +61,14 @@ export default function AdminSearchFunnelPage() {
     void load(period);
   }, [load, period]);
 
+  const hasOutOfRangeRate = Boolean(
+    data &&
+      METRICS.some(({ key }) => {
+        const v = data[key];
+        return typeof v === "number" && Number.isFinite(v) && normalizeFunnelRatePercent(v).clamped;
+      }),
+  );
+
   return (
     <>
       <AdminPageHeader
@@ -74,22 +83,29 @@ export default function AdminSearchFunnelPage() {
       {error && !loading ? <AdminAlert>{error}</AdminAlert> : null}
 
       {!loading && !error && data ? (
-        <dl className="mt-8 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
-          {METRICS.map(({ key, label }) => (
-            <div
-              key={key}
-              className="rounded-xl border border-zinc-200/80 bg-white/90 px-4 py-4 shadow-sm dark:border-zinc-800/70 dark:bg-zinc-950/60"
-            >
-              <dt className="flex items-center gap-2 text-xs font-medium uppercase tracking-wide text-zinc-500 dark:text-zinc-400">
-                <span>{label}</span>
-                <AdminInfoTip text={SEARCH_FUNNEL_TOOLTIPS[key]} />
-              </dt>
-              <dd className="mt-2 text-2xl font-semibold tabular-nums text-zinc-900 dark:text-zinc-50">
-                {formatFunnelRate(data[key] as number | undefined)}
-              </dd>
-            </div>
-          ))}
-        </dl>
+        <>
+          {hasOutOfRangeRate ? (
+            <AdminAlert variant="info" role="status">
+              비정상 rate 값(음수 또는 100% 초과)을 감지해 0~100% 범위로 보정해 표시했습니다.
+            </AdminAlert>
+          ) : null}
+          <dl className="mt-8 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+            {METRICS.map(({ key, label }) => (
+              <div
+                key={key}
+                className="rounded-xl border border-zinc-200/80 bg-white/90 px-4 py-4 shadow-sm dark:border-zinc-800/70 dark:bg-zinc-950/60"
+              >
+                <dt className="flex items-center gap-2 text-xs font-medium uppercase tracking-wide text-zinc-500 dark:text-zinc-400">
+                  <span>{label}</span>
+                  <AdminInfoTip text={SEARCH_FUNNEL_TOOLTIPS[key]} />
+                </dt>
+                <dd className="mt-2 text-2xl font-semibold tabular-nums text-zinc-900 dark:text-zinc-50">
+                  {formatFunnelRate(data[key] as number | undefined)}
+                </dd>
+              </div>
+            ))}
+          </dl>
+        </>
       ) : null}
     </>
   );
