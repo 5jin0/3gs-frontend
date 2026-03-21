@@ -21,6 +21,8 @@ import {
 type AuthContextValue = {
   isLoggedIn: boolean;
   isAdmin: boolean;
+  /** False while a token exists and `/auth/me` has not finished (avoids flashing admin UI). */
+  isSessionProfileReady: boolean;
   accessToken: string | null;
   user: AuthUser | null;
   refreshAuth: () => void;
@@ -35,6 +37,9 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     const token = getAccessToken();
     return token ? getUser() : null;
   });
+  const [isSessionProfileReady, setSessionProfileReady] = useState(
+    () => !getAccessToken(),
+  );
 
   const refreshAuth = useCallback(() => {
     const token = getAccessToken();
@@ -51,8 +56,12 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
   // Hydrate / refresh profile from the server so `is_admin` etc. match the DB after reload.
   useEffect(() => {
-    if (!accessToken) return;
+    if (!accessToken) {
+      setSessionProfileReady(true);
+      return;
+    }
 
+    setSessionProfileReady(false);
     let cancelled = false;
 
     void (async () => {
@@ -70,6 +79,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
           clearAuth();
           refreshAuth();
         }
+      } finally {
+        if (!cancelled) setSessionProfileReady(true);
       }
     })();
 
@@ -87,12 +98,13 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     () => ({
       isLoggedIn: Boolean(accessToken),
       isAdmin: user?.is_admin === true,
+      isSessionProfileReady,
       accessToken,
       user,
       refreshAuth,
       logout,
     }),
-    [accessToken, logout, refreshAuth, user],
+    [accessToken, isSessionProfileReady, logout, refreshAuth, user],
   );
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;

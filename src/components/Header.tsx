@@ -4,7 +4,7 @@ import Link from "next/link";
 import { useAuth } from "@/contexts/AuthContext";
 
 export function Header() {
-  const { isLoggedIn, logout } = useAuth();
+  const { isLoggedIn, isAdmin, isSessionProfileReady, logout } = useAuth();
 
   return (
     <header className="sticky top-0 z-40 w-full border-b border-zinc-200/70 bg-white/70 backdrop-blur dark:border-zinc-800/70 dark:bg-zinc-950/60">
@@ -24,6 +24,14 @@ export function Header() {
             >
               내 단어장
             </Link>
+            {isSessionProfileReady && isAdmin ? (
+              <Link
+                href="/admin"
+                className="hidden text-sm font-medium text-zinc-600 transition-colors hover:text-zinc-900 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-zinc-400 focus-visible:ring-offset-2 focus-visible:ring-offset-white dark:text-zinc-400 dark:hover:text-zinc-50 dark:focus-visible:ring-zinc-500 dark:focus-visible:ring-offset-zinc-950 sm:inline"
+              >
+                관리
+              </Link>
+            ) : null}
             <button
               type="button"
               onClick={logout}
