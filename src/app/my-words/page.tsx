@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useState, type KeyboardEvent } from "react";
 import {
   getMyWords,
   isUnauthorizedError,
@@ -26,6 +26,7 @@ function MyWordsLoading() {
 
 export default function MyWordsPage() {
   const [words, setWords] = useState<SavedWord[]>([]);
+  const [query, setQuery] = useState("");
   const [loading, setLoading] = useState(true);
   const [loadError, setLoadError] = useState(false);
   const [authError, setAuthError] = useState(false);
@@ -92,6 +93,11 @@ export default function MyWordsPage() {
     };
   }, []);
 
+  function handleSearchKeyDown(event: KeyboardEvent<HTMLInputElement>) {
+    if (event.key !== "Escape") return;
+    setQuery("");
+  }
+
   return (
     <main className="relative mx-auto min-h-[calc(100dvh-3.5rem)] w-full max-w-5xl px-6 py-10">
       <div
@@ -107,6 +113,36 @@ export default function MyWordsPage() {
           저장한 판교어를 모아서 볼 수 있어요.
         </p>
       </header>
+
+      {!loading && !loadError && !authError && (
+        <div className="mx-auto mb-6 max-w-2xl rounded-2xl border border-zinc-200/80 bg-white/90 p-4 shadow-sm dark:border-zinc-800/70 dark:bg-zinc-950/70">
+          <label htmlFor="my-words-search" className="sr-only">
+            내 단어장 검색
+          </label>
+          <div className="flex items-center gap-2">
+            <input
+              id="my-words-search"
+              type="search"
+              value={query}
+              onChange={(e) => setQuery(e.target.value)}
+              onKeyDown={handleSearchKeyDown}
+              aria-label="내 단어장 검색"
+              placeholder="내 단어장 검색 (용어/정의/예시)"
+              className="h-11 w-full rounded-xl border border-zinc-200/80 bg-white px-4 text-sm text-zinc-900 outline-none ring-zinc-400 transition-shadow placeholder:text-zinc-400 focus-visible:ring-2 dark:border-zinc-800/70 dark:bg-zinc-950 dark:text-zinc-50 dark:ring-zinc-500 dark:placeholder:text-zinc-500"
+            />
+            {query.trim().length > 0 ? (
+              <button
+                type="button"
+                onClick={() => setQuery("")}
+                aria-label="검색어 지우기"
+                className="inline-flex h-11 shrink-0 items-center justify-center rounded-xl border border-zinc-200 bg-white px-3 text-sm font-medium text-zinc-700 shadow-sm transition-colors hover:bg-zinc-50 dark:border-zinc-700 dark:bg-zinc-950 dark:text-zinc-300 dark:hover:bg-zinc-900"
+              >
+                X
+              </button>
+            ) : null}
+          </div>
+        </div>
+      )}
 
       {loading && <MyWordsLoading />}
 
