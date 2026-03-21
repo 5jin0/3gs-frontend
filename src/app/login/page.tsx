@@ -1,15 +1,25 @@
 "use client";
 
 import type { FormEvent } from "react";
-import { useState } from "react";
-import { useRouter } from "next/navigation";
+import { Suspense, useState } from "react";
+import { useRouter, useSearchParams } from "next/navigation";
 import Link from "next/link";
 
 import { login } from "@/lib/api";
 import { setAuth } from "@/lib/auth";
+import { safeInternalPath } from "@/lib/safe-redirect";
 
-export default function LoginPage() {
+function LoginFallback() {
+  return (
+    <main className="relative mx-auto flex min-h-[calc(100dvh-3.5rem)] w-full max-w-5xl items-center justify-center px-6 py-14">
+      <p className="text-sm text-zinc-600 dark:text-zinc-400">로딩 중...</p>
+    </main>
+  );
+}
+
+function LoginForm() {
   const router = useRouter();
+  const searchParams = useSearchParams();
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -24,7 +34,8 @@ export default function LoginPage() {
     try {
       const res = await login(username, password);
       setAuth(res.access_token, res.user);
-      router.push("/");
+      const next = safeInternalPath(searchParams.get("next"));
+      router.push(next ?? "/");
     } catch (err) {
       const message =
         err instanceof Error ? err.message : "로그인에 실패했습니다.";
@@ -122,3 +133,10 @@ export default function LoginPage() {
   );
 }
 
+export default function LoginPage() {
+  return (
+    <Suspense fallback={<LoginFallback />}>
+      <LoginForm />
+    </Suspense>
+  );
+}

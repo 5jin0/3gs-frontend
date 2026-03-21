@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { useRouter } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
 import { useEffect, type ReactNode } from "react";
 import { useAuth } from "@/contexts/AuthContext";
 
@@ -27,13 +27,15 @@ function AdminLoading() {
  */
 export function AdminGate({ children }: { children: ReactNode }) {
   const router = useRouter();
+  const pathname = usePathname();
   const { isLoggedIn, isAdmin, isSessionProfileReady } = useAuth();
 
   useEffect(() => {
     if (!isLoggedIn) {
-      router.replace("/login");
+      const next = encodeURIComponent(pathname || "/admin");
+      router.replace(`/login?next=${next}`);
     }
-  }, [isLoggedIn, router]);
+  }, [isLoggedIn, pathname, router]);
 
   if (!isLoggedIn) {
     return (
