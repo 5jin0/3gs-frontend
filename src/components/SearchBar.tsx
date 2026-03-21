@@ -11,6 +11,9 @@ import { useAuth } from "@/contexts/AuthContext";
 import {
   getTermSuggestions,
   searchTerms,
+  trackSearchComplete,
+  trackSearchExit,
+  trackSearchStart,
   trackSuggestionSelect,
   type PangyoTerm,
   type PangyoTermSuggestion,
@@ -195,8 +198,66 @@ export function SearchBar() {
   const [savedTermIds, setSavedTermIds] = useState<Set<number>>(
     () => new Set(),
   );
+  const searchSessionIdRef = useRef<string | null>(null);
+  const searchSessionStartedRef = useRef(false);
+  const searchSessionCompletedRef = useRef(false);
+  const searchSessionExitSentRef = useRef(false);
+  const lastSubmittedKeywordRef = useRef("");
 
   const canSubmit = keyword.trim().length > 0 && !loading;
+
+  function nextSessionId() {
+    return `s_${Date.now()}_${Math.random().toString(36).slice(2, 10)}`;
+  }
+
+  function ensureSearchSession(trigger: "focus" | "input" | "submit", rawKeyword?: string) {
+    if (!searchSessionIdRef.current) {
+      searchSessionIdRef.current = nextSessionId();
+      searchSessionStartedRef.current = false;
+      searchSessionCompletedRef.current = false;
+      searchSessionExitSentRef.current = false;
+    }
+
+    if (searchSessionStartedRef.current) return;
+
+    searchSessionStartedRef.current = true;
+    const q = rawKeyword?.trim();
+    void trackSearchStart({
+      session_id: searchSessionIdRef.current,
+      keyword: q && q.length > 0 ? q : undefined,
+      trigger,
+    }).catch(() => {
+      // Fire-and-forget: tracking failure should never block search UX.
+    });
+  }
+
+  function markSearchComplete(keywordForEvent: string, resultCount: number, success: boolean) {
+    const sessionId = searchSessionIdRef.current;
+    if (!sessionId || searchSessionCompletedRef.current) return;
+    searchSessionCompletedRef.current = true;
+    void trackSearchComplete({
+      session_id: sessionId,
+      keyword: keywordForEvent,
+      result_count: Math.max(0, resultCount),
+      success,
+    }).catch(() => {
+      // Fire-and-forget: tracking failure should never block search UX.
+    });
+  }
+
+  function markSearchExit(reason: "route_change" | "pagehide" | "visibility_hidden" | "unmount") {
+    const sessionId = searchSessionIdRef.current;
+    if (!sessionId || searchSessionExitSentRef.current) return;
+    searchSessionExitSentRef.current = true;
+    void trackSearchExit({
+      session_id: sessionId,
+      keyword: lastSubmittedKeywordRef.current || undefined,
+      had_complete: searchSessionCompletedRef.current,
+      reason,
+    }).catch(() => {
+      // Fire-and-forget: tracking failure should never block search UX.
+    });
+  }
 
   useEffect(() => {
     if (!isLoggedIn) {
@@ -235,6 +296,24 @@ export function SearchBar() {
     document.addEventListener("mousedown", handleDocumentMouseDown);
     return () => {
       document.removeEventListener("mousedown", handleDocumentMouseDown);
+    };
+  }, []);
+
+  useEffect(() => {
+    function onVisibilityChange() {
+      if (document.visibilityState === "hidden") {
+        markSearchExit("visibility_hidden");
+      }
+    }
+    function onPageHide() {
+      markSearchExit("pagehide");
+    }
+    window.addEventListener("pagehide", onPageHide);
+    document.addEventListener("visibilitychange", onVisibilityChange);
+    return () => {
+      window.removeEventListener("pagehide", onPageHide);
+      document.removeEventListener("visibilitychange", onVisibilityChange);
+      markSearchExit("unmount");
     };
   }, []);
 
@@ -289,6 +368,8 @@ export function SearchBar() {
 
     const q = keyword.trim();
     if (!q) return;
+    ensureSearchSession("submit", q);
+    lastSubmittedKeywordRef.current = q;
 
     setKeyword(q);
     setShowSuggestions(false);
@@ -298,9 +379,15 @@ export function SearchBar() {
     try {
       const data = await searchTerms(q);
       setResults(data);
+      requestAnimationFrame(() => {
+        markSearchComplete(q, data.length, true);
+      });
     } catch {
       setResults([]);
       setError("검색 중 문제가 발생했습니다.");
+      requestAnimationFrame(() => {
+        markSearchComplete(q, 0, false);
+      });
     } finally {
       setLoading(false);
       setSearched(true);
@@ -338,8 +425,15 @@ export function SearchBar() {
               inputMode="search"
               enterKeyHint="search"
               value={keyword}
-              onChange={(e) => setKeyword(e.target.value)}
-              onFocus={() => setShowSuggestions(suggestions.length > 0)}
+              onChange={(e) => {
+                const next = e.target.value;
+                setKeyword(next);
+                if (next.trim().length > 0) ensureSearchSession("input", next);
+              }}
+              onFocus={() => {
+                setShowSuggestions(suggestions.length > 0);
+                ensureSearchSession("focus", keyword);
+              }}
               onBlur={() => {
                 setKeyword((k) => k.trim());
               }}

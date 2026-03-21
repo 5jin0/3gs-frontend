@@ -14,6 +14,7 @@ import {
   formatCognitiveLoad,
   formatMilliseconds,
   formatUxRate,
+  normalizeUxRatePercent,
   isSampleInsufficient,
   isSearchUxNotFoundError,
   type SearchUxMetrics,
@@ -99,6 +100,15 @@ export default function AdminSearchUxPage() {
     data?.sample_size != null
       ? `현재 표본 수: ${data.sample_size} (권장 ${DEFAULT_MIN_SAMPLE_SIZE} 이상)`
       : `권장 최소 표본: ${DEFAULT_MIN_SAMPLE_SIZE}`;
+  const hasOutOfRangeRate = Boolean(
+    data &&
+      ((data.abandonment_rate != null &&
+        Number.isFinite(data.abandonment_rate) &&
+        normalizeUxRatePercent(data.abandonment_rate).clamped) ||
+        (data.churn_rate != null &&
+          Number.isFinite(data.churn_rate) &&
+          normalizeUxRatePercent(data.churn_rate).clamped)),
+  );
 
   return (
     <>
@@ -122,6 +132,11 @@ export default function AdminSearchUxPage() {
               <p className="mt-2 opacity-80">
                 아래 수치는 참고용이며, 표본이 쌓이면 안내가 사라질 수 있습니다.
               </p>
+            </AdminAlert>
+          ) : null}
+          {hasOutOfRangeRate ? (
+            <AdminAlert variant="info" role="status" className="mt-0">
+              비정상 rate 값(음수 또는 100% 초과)을 감지해 0~100% 범위로 보정해 표시했습니다.
             </AdminAlert>
           ) : null}
 
@@ -177,8 +192,9 @@ export default function AdminSearchUxPage() {
               ) : null}
               {data.churn_rate != null && Number.isFinite(data.churn_rate) ? (
                 <div className="rounded-xl border border-zinc-200/80 bg-white/90 px-4 py-4 dark:border-zinc-800/70 dark:bg-zinc-950/60">
-                  <p className="text-xs font-medium uppercase tracking-wide text-zinc-500 dark:text-zinc-400">
-                    이탈률 (churn)
+                  <p className="flex items-center gap-2 text-xs font-medium uppercase tracking-wide text-zinc-500 dark:text-zinc-400">
+                    검색 미완료율
+                    <AdminInfoTip text="churn_rate는 현재 백엔드 집계 정의상 검색 플로우 미완료 비율로 해석합니다." />
                   </p>
                   <p className="mt-1 text-2xl font-semibold tabular-nums text-zinc-900 dark:text-zinc-50">
                     {formatUxRate(data.churn_rate)}

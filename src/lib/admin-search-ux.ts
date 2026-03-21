@@ -108,8 +108,14 @@ export function formatMilliseconds(value: number | undefined): string {
 /** 0~1 또는 0~100 비율을 퍼센트 문자열로 */
 export function formatUxRate(value: number | undefined): string {
   if (value == null || !Number.isFinite(value)) return "—";
-  const pct = value > 0 && value <= 1 ? value * 100 : value;
+  const pct = normalizeUxRatePercent(value).value;
   return `${pct.toFixed(1)}%`;
+}
+
+export function normalizeUxRatePercent(value: number): { value: number; clamped: boolean } {
+  const raw = value > 0 && value <= 1 ? value * 100 : value;
+  const clamped = Math.min(100, Math.max(0, raw));
+  return { value: clamped, clamped: clamped !== raw };
 }
 
 export function formatCognitiveLoad(value: number | undefined): string {

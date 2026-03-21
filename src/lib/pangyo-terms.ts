@@ -19,6 +19,7 @@ export type PangyoTermSuggestion = {
 
 export type TermSuggestionsResponse = ApiSuccessResponse<PangyoTermSuggestion[]>;
 type SuggestionSelectEventResponse = ApiSuccessResponse<unknown>;
+type SearchEventResponse = ApiSuccessResponse<unknown>;
 
 const LIST_KEYS = [
   "data",
@@ -146,4 +147,36 @@ export async function trackSuggestionSelect(keyword: string): Promise<void> {
   await api.post<SuggestionSelectEventResponse>("/terms/events/suggestion-select", {
     keyword,
   });
+}
+
+export type SearchFlowStartPayload = {
+  session_id: string;
+  keyword?: string;
+  trigger?: "focus" | "input" | "submit";
+};
+
+export type SearchFlowCompletePayload = {
+  session_id: string;
+  keyword: string;
+  result_count: number;
+  success: boolean;
+};
+
+export type SearchFlowExitPayload = {
+  session_id: string;
+  keyword?: string;
+  had_complete: boolean;
+  reason: "route_change" | "pagehide" | "visibility_hidden" | "unmount";
+};
+
+export async function trackSearchStart(payload: SearchFlowStartPayload): Promise<void> {
+  await api.post<SearchEventResponse>("/terms/events/search-start", payload);
+}
+
+export async function trackSearchComplete(payload: SearchFlowCompletePayload): Promise<void> {
+  await api.post<SearchEventResponse>("/terms/events/search-complete", payload);
+}
+
+export async function trackSearchExit(payload: SearchFlowExitPayload): Promise<void> {
+  await api.post<SearchEventResponse>("/terms/events/search-exit", payload);
 }
