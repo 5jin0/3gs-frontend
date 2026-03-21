@@ -5,6 +5,7 @@ import { normalizePangyoTerm, type PangyoTerm } from "@/lib/pangyo-terms";
 const ADMIN_OVERVIEW_ENDPOINT = "/admin/overview";
 const ADMIN_USERS_ENDPOINT = "/admin/users";
 const ADMIN_TERMS_ENDPOINT = "/admin/terms";
+const ADMIN_SAVED_ENTRIES_ENDPOINT = "/admin/saves";
 
 /** Loose shape so different backend field names still render. */
 export type AdminOverview = {
@@ -22,6 +23,18 @@ export type AdminUser = {
   email?: string;
   is_admin?: boolean;
   created_at?: string;
+  [key: string]: unknown;
+};
+
+/** One saved-term row across all users (admin-only list). */
+export type AdminSavedEntry = {
+  id?: string | number;
+  saved_id?: string | number;
+  user_id?: string | number;
+  term_id?: string | number;
+  username?: string;
+  term?: string;
+  saved_at?: string;
   [key: string]: unknown;
 };
 
@@ -70,7 +83,7 @@ function unwrapDataArray<T>(body: unknown): T[] | null {
     if (Array.isArray(d)) return d as T[];
     if (d && typeof d === "object" && !Array.isArray(d)) {
       const inner = d as Record<string, unknown>;
-      for (const key of ["users", "items", "results", "terms"] as const) {
+      for (const key of ["users", "items", "results", "terms", "saves", "entries"] as const) {
         const v = inner[key];
         if (Array.isArray(v)) return v as T[];
       }
@@ -79,7 +92,7 @@ function unwrapDataArray<T>(body: unknown): T[] | null {
 
   if ("data" in top && Array.isArray(top.data)) return top.data as T[];
 
-  for (const key of ["users", "items", "results", "terms"] as const) {
+  for (const key of ["users", "items", "results", "terms", "saves", "entries"] as const) {
     const v = top[key];
     if (Array.isArray(v)) return v as T[];
   }
@@ -132,5 +145,41 @@ export async function fetchAdminTerms(): Promise<PangyoTerm[]> {
 }
 
 export function isAdminTermsNotFoundError(error: unknown): boolean {
+  return axios.isAxiosError(error) && error.response?.status === 404;
+}
+
+/** All users’ saved terms for moderation / stats (admin-only). */
+export async function fetchAdminSavedEntries(): Promise<AdminSavedEntry[]> {
+  const res = await api.get<unknown>(ADMIN_SAVED_ENTRIES_ENDPOINT);
+  const list = unwrapDataArray<AdminSavedEntry>(res.data);
+  if (!list) {
+    throw new Error("Invalid admin saves response");
+  }
+  return list.map((row) => normalizeSavedEntryRow(row));
+}
+
+function normalizeSavedEntryRow(raw: AdminSavedEntry): AdminSavedEntry {
+  const userId = raw.user_id ?? raw.userId;
+  const termId = raw.term_id ?? raw.termId;
+  const term =
+    typeof raw.term === "string"
+      ? raw.term
+      : typeof raw.word === "string"
+        ? raw.word
+        : undefined;
+  const savedAt = raw.saved_at ?? raw.savedAt;
+  const username = raw.username ?? raw.user_name ?? raw.userName;
+
+  return {
+    ...raw,
+    ...(userId != null ? { user_id: userId as string | number } : {}),
+    ...(termId != null ? { term_id: termId as string | number } : {}),
+    ...(term != null ? { term } : {}),
+    ...(typeof savedAt === "string" ? { saved_at: savedAt } : {}),
+    ...(typeof username === "string" ? { username } : {}),
+  };
+}
+
+export function isAdminSavesNotFoundError(error: unknown): boolean {
   return axios.isAxiosError(error) && error.response?.status === 404;
 }
