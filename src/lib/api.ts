@@ -30,6 +30,8 @@ export type AuthUser = {
   username?: string;
   name?: string;
   email?: string;
+  /** Present when backend includes it in login/user payloads (JWT may lag DB). */
+  is_admin?: boolean;
   [key: string]: unknown;
 };
 

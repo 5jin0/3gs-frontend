@@ -18,6 +18,7 @@ import {
 
 type AuthContextValue = {
   isLoggedIn: boolean;
+  isAdmin: boolean;
   accessToken: string | null;
   user: AuthUser | null;
   refreshAuth: () => void;
@@ -54,6 +55,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const value = useMemo<AuthContextValue>(
     () => ({
       isLoggedIn: Boolean(accessToken),
+      isAdmin: user?.is_admin === true,
       accessToken,
       user,
       refreshAuth,
