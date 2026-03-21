@@ -1,8 +1,9 @@
 import axios from "axios";
 import { api, type ApiSuccessResponse } from "@/lib/api";
+import type { AdminPeriod } from "@/lib/admin-period";
 import { heatIntensity } from "@/lib/admin-access-cohorts";
 
-export type RetentionGranularity = "day" | "week" | "month";
+export type RetentionGranularity = AdminPeriod;
 
 const RETENTION_ENDPOINT = "/admin/analytics/retention";
 

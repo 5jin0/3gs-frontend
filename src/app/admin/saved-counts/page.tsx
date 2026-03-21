@@ -1,5 +1,9 @@
 "use client";
 
+import { AdminAlert } from "@/components/admin/AdminAlert";
+import { AdminEmptyState } from "@/components/admin/AdminEmptyState";
+import { AdminPageHeader } from "@/components/admin/AdminPageHeader";
+import { AdminSkeleton } from "@/components/admin/AdminSkeleton";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import {
   downloadUserSavedCountsCsv,
@@ -89,15 +93,10 @@ export default function AdminUserSavedCountsPage() {
 
   return (
     <>
-      <div className="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
-        <div>
-          <h1 className="text-xl font-semibold tracking-tight text-zinc-900 dark:text-zinc-50">
-            유저별 단어 저장 횟수
-          </h1>
-          <p className="mt-2 text-sm text-zinc-600 dark:text-zinc-400">
-            사용자별 저장한 단어 수를 정렬·페이지로 확인합니다. CSV는 현재 페이지 데이터만 내보냅니다.
-          </p>
-        </div>
+      <AdminPageHeader
+        title="유저별 단어 저장 횟수"
+        description="사용자별 저장한 단어 수를 정렬·페이지로 확인합니다. CSV는 현재 페이지 데이터만 내보냅니다."
+      >
         <div className="flex flex-wrap items-center gap-3">
           <label className="flex items-center gap-2 text-sm text-zinc-600 dark:text-zinc-400">
             페이지당
@@ -125,23 +124,11 @@ export default function AdminUserSavedCountsPage() {
             CSV 내보내기 (현재 페이지)
           </button>
         </div>
-      </div>
+      </AdminPageHeader>
 
-      {loading ? (
-        <div
-          className="mt-8 h-48 animate-pulse rounded-xl border border-zinc-200/80 bg-zinc-100/80 dark:border-zinc-800/70 dark:bg-zinc-900/40"
-          aria-busy="true"
-        />
-      ) : null}
+      {loading ? <AdminSkeleton variant="block" /> : null}
 
-      {error && !loading ? (
-        <div
-          className="mt-8 rounded-xl border border-amber-200/90 bg-amber-50/90 px-4 py-3 text-sm text-amber-950 dark:border-amber-900/60 dark:bg-amber-950/40 dark:text-amber-100"
-          role="alert"
-        >
-          {error}
-        </div>
-      ) : null}
+      {error && !loading ? <AdminAlert>{error}</AdminAlert> : null}
 
       {!loading && !error ? (
         <>
@@ -149,47 +136,43 @@ export default function AdminUserSavedCountsPage() {
             총 {total.toLocaleString("ko-KR")}건 · {page} / {totalPages} 페이지
           </p>
 
-          <div className="mt-4 overflow-x-auto rounded-xl border border-zinc-200/80 bg-white/90 shadow-sm dark:border-zinc-800/70 dark:bg-zinc-950/60">
-            <table className="w-full min-w-[520px] text-left text-sm">
-              <thead>
-                <tr className="border-b border-zinc-200 bg-zinc-50/80 dark:border-zinc-800 dark:bg-zinc-900/40">
-                  <th scope="col" className="px-4 py-3 font-medium text-zinc-700 dark:text-zinc-300">
-                    사용자 ID
-                  </th>
-                  <th scope="col" className="px-4 py-3 font-medium text-zinc-700 dark:text-zinc-300">
-                    <button
-                      type="button"
-                      onClick={() => handleSort("username")}
-                      className="inline-flex items-center gap-1 font-medium text-zinc-700 hover:text-zinc-900 dark:text-zinc-300 dark:hover:text-zinc-50"
-                    >
-                      사용자명
-                      {sortLabel("username", sortColumn, sortDir)}
-                    </button>
-                  </th>
-                  <th scope="col" className="px-4 py-3 font-medium text-zinc-700 dark:text-zinc-300">
-                    이메일
-                  </th>
-                  <th scope="col" className="px-4 py-3 text-right font-medium text-zinc-700 dark:text-zinc-300">
-                    <button
-                      type="button"
-                      onClick={() => handleSort("save_count")}
-                      className="inline-flex w-full items-center justify-end gap-1 font-medium text-zinc-700 hover:text-zinc-900 dark:text-zinc-300 dark:hover:text-zinc-50"
-                    >
-                      저장 횟수
-                      {sortLabel("save_count", sortColumn, sortDir)}
-                    </button>
-                  </th>
-                </tr>
-              </thead>
-              <tbody>
-                {rows.length === 0 ? (
-                  <tr>
-                    <td colSpan={4} className="px-4 py-8 text-center text-zinc-500 dark:text-zinc-400">
-                      데이터가 없습니다.
-                    </td>
+          {rows.length === 0 ? (
+            <AdminEmptyState message="데이터가 없습니다." />
+          ) : (
+            <div className="mt-4 overflow-x-auto rounded-xl border border-zinc-200/80 bg-white/90 shadow-sm dark:border-zinc-800/70 dark:bg-zinc-950/60">
+              <table className="w-full min-w-[520px] text-left text-sm">
+                <thead>
+                  <tr className="border-b border-zinc-200 bg-zinc-50/80 dark:border-zinc-800 dark:bg-zinc-900/40">
+                    <th scope="col" className="px-4 py-3 font-medium text-zinc-700 dark:text-zinc-300">
+                      사용자 ID
+                    </th>
+                    <th scope="col" className="px-4 py-3 font-medium text-zinc-700 dark:text-zinc-300">
+                      <button
+                        type="button"
+                        onClick={() => handleSort("username")}
+                        className="inline-flex items-center gap-1 font-medium text-zinc-700 hover:text-zinc-900 dark:text-zinc-300 dark:hover:text-zinc-50"
+                      >
+                        사용자명
+                        {sortLabel("username", sortColumn, sortDir)}
+                      </button>
+                    </th>
+                    <th scope="col" className="px-4 py-3 font-medium text-zinc-700 dark:text-zinc-300">
+                      이메일
+                    </th>
+                    <th scope="col" className="px-4 py-3 text-right font-medium text-zinc-700 dark:text-zinc-300">
+                      <button
+                        type="button"
+                        onClick={() => handleSort("save_count")}
+                        className="inline-flex w-full items-center justify-end gap-1 font-medium text-zinc-700 hover:text-zinc-900 dark:text-zinc-300 dark:hover:text-zinc-50"
+                      >
+                        저장 횟수
+                        {sortLabel("save_count", sortColumn, sortDir)}
+                      </button>
+                    </th>
                   </tr>
-                ) : (
-                  rows.map((r, i) => (
+                </thead>
+                <tbody>
+                  {rows.map((r, i) => (
                     <tr
                       key={String(r.user_id ?? r.email ?? i)}
                       className="border-b border-zinc-100 last:border-0 dark:border-zinc-800/80"
@@ -205,11 +188,11 @@ export default function AdminUserSavedCountsPage() {
                           : "—"}
                       </td>
                     </tr>
-                  ))
-                )}
-              </tbody>
-            </table>
-          </div>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          )}
 
           {totalPages > 1 ? (
             <nav

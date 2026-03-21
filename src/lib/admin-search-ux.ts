@@ -1,7 +1,8 @@
 import axios from "axios";
 import { api, type ApiSuccessResponse } from "@/lib/api";
+import type { AdminPeriod } from "@/lib/admin-period";
 
-export type SearchUxPeriod = "day" | "week" | "month";
+export type SearchUxPeriod = AdminPeriod;
 
 const SEARCH_UX_ENDPOINT = "/admin/analytics/search-ux";
 

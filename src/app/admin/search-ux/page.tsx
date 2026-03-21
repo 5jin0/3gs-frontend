@@ -1,5 +1,10 @@
 "use client";
 
+import { AdminAlert } from "@/components/admin/AdminAlert";
+import { AdminInfoTip } from "@/components/admin/AdminInfoTip";
+import { AdminPageHeader } from "@/components/admin/AdminPageHeader";
+import { AdminPeriodToggle } from "@/components/admin/AdminPeriodToggle";
+import { AdminSkeleton } from "@/components/admin/AdminSkeleton";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import {
   COGNITIVE_LOAD_DEFINITION,
@@ -14,26 +19,6 @@ import {
   type SearchUxPeriod,
 } from "@/lib/admin-search-ux";
 import { isAdminForbiddenError } from "@/lib/admin";
-
-const PERIODS: { value: SearchUxPeriod; label: string }[] = [
-  { value: "day", label: "일" },
-  { value: "week", label: "주" },
-  { value: "month", label: "월" },
-];
-
-function InfoTip({ text }: { text: string }) {
-  return (
-    <span className="inline-flex shrink-0" title={text}>
-      <span className="sr-only">{text}</span>
-      <span
-        className="inline-flex size-5 items-center justify-center rounded-full border border-zinc-300 text-[10px] font-bold text-zinc-500 dark:border-zinc-600 dark:text-zinc-400"
-        aria-hidden
-      >
-        ?
-      </span>
-    </span>
-  );
-}
 
 const BAR_MAX_PX = 112;
 
@@ -118,74 +103,27 @@ export default function AdminSearchUxPage() {
 
   return (
     <>
-      <div className="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
-        <div>
-          <h1 className="text-xl font-semibold tracking-tight text-zinc-900 dark:text-zinc-50">
-            검색 지연·이탈·인지부담
-          </h1>
-          <p className="mt-2 text-sm text-zinc-600 dark:text-zinc-400">
-            지연 분포, 이탈 비율, 인지 부담 지수를 기간별로 확인합니다.
-          </p>
-        </div>
-        <div
-          className="inline-flex rounded-xl border border-zinc-200/80 bg-zinc-50/80 p-1 dark:border-zinc-800/70 dark:bg-zinc-900/40"
-          role="group"
-          aria-label="집계 기간"
-        >
-          {PERIODS.map(({ value, label }) => {
-            const active = period === value;
-            return (
-              <button
-                key={value}
-                type="button"
-                onClick={() => setPeriod(value)}
-                className={[
-                  "rounded-lg px-4 py-2 text-sm font-medium transition-colors",
-                  active
-                    ? "bg-white text-zinc-900 shadow-sm dark:bg-zinc-950 dark:text-zinc-50"
-                    : "text-zinc-600 hover:text-zinc-900 dark:text-zinc-400 dark:hover:text-zinc-50",
-                ].join(" ")}
-                aria-pressed={active}
-              >
-                {label}
-              </button>
-            );
-          })}
-        </div>
-      </div>
+      <AdminPageHeader
+        title="검색 지연·이탈·인지부담"
+        description="지연 분포, 이탈 비율, 인지 부담 지수를 기간별로 확인합니다."
+      >
+        <AdminPeriodToggle value={period} onChange={setPeriod} />
+      </AdminPageHeader>
 
-      {loading ? (
-        <div className="mt-8 space-y-6" aria-busy="true">
-          <div className="h-36 animate-pulse rounded-xl border border-zinc-200/80 bg-zinc-100/80 dark:border-zinc-800/70 dark:bg-zinc-900/40" />
-          <div className="grid gap-4 sm:grid-cols-2">
-            <div className="h-28 animate-pulse rounded-xl border border-zinc-200/80 bg-zinc-100/80 dark:border-zinc-800/70 dark:bg-zinc-900/40" />
-            <div className="h-28 animate-pulse rounded-xl border border-zinc-200/80 bg-zinc-100/80 dark:border-zinc-800/70 dark:bg-zinc-900/40" />
-          </div>
-        </div>
-      ) : null}
+      {loading ? <AdminSkeleton variant="stack" /> : null}
 
-      {error && !loading ? (
-        <div
-          className="mt-8 rounded-xl border border-amber-200/90 bg-amber-50/90 px-4 py-3 text-sm text-amber-950 dark:border-amber-900/60 dark:bg-amber-950/40 dark:text-amber-100"
-          role="alert"
-        >
-          {error}
-        </div>
-      ) : null}
+      {error && !loading ? <AdminAlert>{error}</AdminAlert> : null}
 
       {!loading && !error && data ? (
         <div className="mt-8 space-y-8">
           {sampleWarning ? (
-            <div
-              className="rounded-xl border border-sky-200/90 bg-sky-50/90 px-4 py-3 text-sm text-sky-950 dark:border-sky-900/50 dark:bg-sky-950/30 dark:text-sky-100"
-              role="status"
-            >
+            <AdminAlert variant="info" role="status" className="mt-0">
               <p className="font-medium">표본이 부족합니다</p>
-              <p className="mt-1 text-sky-900/90 dark:text-sky-200/90">{sampleNote}</p>
-              <p className="mt-2 text-sky-800/80 dark:text-sky-300/80">
+              <p className="mt-1 opacity-90">{sampleNote}</p>
+              <p className="mt-2 opacity-80">
                 아래 수치는 참고용이며, 표본이 쌓이면 안내가 사라질 수 있습니다.
               </p>
-            </div>
+            </AdminAlert>
           ) : null}
 
           <section aria-labelledby="latency-heading">
@@ -263,7 +201,7 @@ export default function AdminSearchUxPage() {
               className="flex items-center gap-2 text-sm font-semibold text-zinc-900 dark:text-zinc-50"
             >
               인지 부담
-              <InfoTip text={COGNITIVE_LOAD_DEFINITION} />
+              <AdminInfoTip text={COGNITIVE_LOAD_DEFINITION} />
             </h2>
             <p className="mt-2 text-xs leading-relaxed text-zinc-600 dark:text-zinc-400">
               {COGNITIVE_LOAD_DEFINITION}

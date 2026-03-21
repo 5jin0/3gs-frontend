@@ -1,5 +1,10 @@
 "use client";
 
+import { AdminAlert } from "@/components/admin/AdminAlert";
+import { AdminEmptyState } from "@/components/admin/AdminEmptyState";
+import { AdminPageHeader } from "@/components/admin/AdminPageHeader";
+import { AdminPeriodToggle } from "@/components/admin/AdminPeriodToggle";
+import { AdminSkeleton } from "@/components/admin/AdminSkeleton";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import {
   fetchRetentionGrid,
@@ -11,12 +16,6 @@ import {
   type RetentionGridData,
 } from "@/lib/admin-retention";
 import { isAdminForbiddenError } from "@/lib/admin";
-
-const GRANULARITIES: { value: RetentionGranularity; label: string }[] = [
-  { value: "day", label: "일" },
-  { value: "week", label: "주" },
-  { value: "month", label: "월" },
-];
 
 function HeatCell({
   value,
@@ -76,67 +75,27 @@ export default function AdminRetentionPage() {
 
   return (
     <>
-      <div className="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
-        <div>
-          <h1 className="text-xl font-semibold tracking-tight text-zinc-900 dark:text-zinc-50">
-            리텐션
-          </h1>
-          <p className="mt-2 text-sm text-zinc-600 dark:text-zinc-400">
-            코호트별 기간 경과에 따른 잔존을 그리드로 봅니다. 셀 단위는 백엔드 정의(비율·퍼센트 포인트 등)에
-            맞춰 표시됩니다.
-          </p>
-        </div>
-        <div
-          className="inline-flex rounded-xl border border-zinc-200/80 bg-zinc-50/80 p-1 dark:border-zinc-800/70 dark:bg-zinc-900/40"
-          role="group"
-          aria-label="집계 단위"
-        >
-          {GRANULARITIES.map(({ value, label }) => {
-            const active = granularity === value;
-            return (
-              <button
-                key={value}
-                type="button"
-                onClick={() => setGranularity(value)}
-                className={[
-                  "rounded-lg px-4 py-2 text-sm font-medium transition-colors",
-                  active
-                    ? "bg-white text-zinc-900 shadow-sm dark:bg-zinc-950 dark:text-zinc-50"
-                    : "text-zinc-600 hover:text-zinc-900 dark:text-zinc-400 dark:hover:text-zinc-50",
-                ].join(" ")}
-                aria-pressed={active}
-              >
-                {label}
-              </button>
-            );
-          })}
-        </div>
-      </div>
+      <AdminPageHeader
+        title="리텐션"
+        description="코호트별 기간 경과에 따른 잔존을 그리드로 봅니다. 셀 단위는 백엔드 정의(비율·퍼센트 포인트 등)에 맞춰 표시됩니다."
+      >
+        <AdminPeriodToggle
+          value={granularity}
+          onChange={setGranularity}
+          ariaLabel="집계 단위"
+        />
+      </AdminPageHeader>
 
       {data?.granularity_label ? (
         <p className="mt-4 text-sm text-zinc-600 dark:text-zinc-400">{data.granularity_label}</p>
       ) : null}
 
-      {loading ? (
-        <div
-          className="mt-8 h-64 animate-pulse rounded-xl border border-zinc-200/80 bg-zinc-100/80 dark:border-zinc-800/70 dark:bg-zinc-900/40"
-          aria-busy="true"
-        />
-      ) : null}
+      {loading ? <AdminSkeleton variant="table" /> : null}
 
-      {error && !loading ? (
-        <div
-          className="mt-8 rounded-xl border border-amber-200/90 bg-amber-50/90 px-4 py-3 text-sm text-amber-950 dark:border-amber-900/60 dark:bg-amber-950/40 dark:text-amber-100"
-          role="alert"
-        >
-          {error}
-        </div>
-      ) : null}
+      {error && !loading ? <AdminAlert>{error}</AdminAlert> : null}
 
       {!loading && !error && data && data.rows.length === 0 ? (
-        <p className="mt-8 text-sm text-zinc-600 dark:text-zinc-400">
-          표시할 리텐션 행이 없습니다.
-        </p>
+        <AdminEmptyState message="표시할 리텐션 행이 없습니다." />
       ) : null}
 
       {!loading && !error && data && data.rows.length > 0 ? (

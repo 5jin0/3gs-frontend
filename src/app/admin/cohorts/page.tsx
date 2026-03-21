@@ -1,5 +1,10 @@
 "use client";
 
+import { AdminAlert } from "@/components/admin/AdminAlert";
+import { AdminEmptyState } from "@/components/admin/AdminEmptyState";
+import { AdminPageHeader } from "@/components/admin/AdminPageHeader";
+import { AdminPeriodToggle } from "@/components/admin/AdminPeriodToggle";
+import { AdminSkeleton } from "@/components/admin/AdminSkeleton";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import {
   AccessCohortPeriod,
@@ -11,12 +16,6 @@ import {
   type AccessCohortData,
 } from "@/lib/admin-access-cohorts";
 import { isAdminForbiddenError } from "@/lib/admin";
-
-const PERIODS: { value: AccessCohortPeriod; label: string }[] = [
-  { value: "day", label: "일" },
-  { value: "week", label: "주" },
-  { value: "month", label: "월" },
-];
 
 const GROUPS: { value: CohortGroupBy; label: string }[] = [
   { value: "all", label: "전체" },
@@ -88,30 +87,12 @@ export default function AdminCohortsPage() {
 
   return (
     <>
-      <div className="flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between">
-        <div>
-          <h1 className="text-xl font-semibold tracking-tight text-zinc-900 dark:text-zinc-50">
-            접속·로그인·재접속
-          </h1>
-          <p className="mt-2 text-sm text-zinc-600 dark:text-zinc-400">
-            코호트별 접속·로그인·재접속 흐름을 표와 히트맵으로 봅니다.
-          </p>
-        </div>
-        <div className="flex flex-col gap-3 sm:flex-row sm:items-center">
-          <label className="flex flex-col gap-1 text-xs font-medium text-zinc-600 dark:text-zinc-400">
-            기간
-            <select
-              value={period}
-              onChange={(e) => setPeriod(e.target.value as AccessCohortPeriod)}
-              className="h-10 min-w-[8rem] rounded-lg border border-zinc-200 bg-white px-3 text-sm text-zinc-900 dark:border-zinc-700 dark:bg-zinc-950 dark:text-zinc-50"
-            >
-              {PERIODS.map(({ value, label }) => (
-                <option key={value} value={value}>
-                  {label}
-                </option>
-              ))}
-            </select>
-          </label>
+      <AdminPageHeader
+        title="접속·로그인·재접속"
+        description="코호트별 접속·로그인·재접속 흐름을 표와 히트맵으로 봅니다."
+      >
+        <div className="flex flex-col gap-3 lg:flex-row lg:items-end">
+          <AdminPeriodToggle value={period} onChange={setPeriod} />
           <label className="flex flex-col gap-1 text-xs font-medium text-zinc-600 dark:text-zinc-400">
             코호트
             <select
@@ -127,32 +108,18 @@ export default function AdminCohortsPage() {
             </select>
           </label>
         </div>
-      </div>
+      </AdminPageHeader>
 
       {data?.period_label ? (
         <p className="mt-4 text-sm text-zinc-600 dark:text-zinc-400">{data.period_label}</p>
       ) : null}
 
-      {loading ? (
-        <div
-          className="mt-8 h-64 animate-pulse rounded-xl border border-zinc-200/80 bg-zinc-100/80 dark:border-zinc-800/70 dark:bg-zinc-900/40"
-          aria-busy="true"
-        />
-      ) : null}
+      {loading ? <AdminSkeleton variant="table" /> : null}
 
-      {error && !loading ? (
-        <div
-          className="mt-8 rounded-xl border border-amber-200/90 bg-amber-50/90 px-4 py-3 text-sm text-amber-950 dark:border-amber-900/60 dark:bg-amber-950/40 dark:text-amber-100"
-          role="alert"
-        >
-          {error}
-        </div>
-      ) : null}
+      {error && !loading ? <AdminAlert>{error}</AdminAlert> : null}
 
       {!loading && !error && data && data.rows.length === 0 ? (
-        <p className="mt-8 text-sm text-zinc-600 dark:text-zinc-400">
-          표시할 코호트 행이 없습니다.
-        </p>
+        <AdminEmptyState message="표시할 코호트 행이 없습니다." />
       ) : null}
 
       {!loading && !error && data && data.rows.length > 0 ? (

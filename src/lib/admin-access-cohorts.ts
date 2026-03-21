@@ -1,9 +1,10 @@
 import axios from "axios";
 import { api, type ApiSuccessResponse } from "@/lib/api";
+import type { AdminPeriod } from "@/lib/admin-period";
 
 const ACCESS_COHORTS_ENDPOINT = "/admin/analytics/access-cohorts";
 
-export type AccessCohortPeriod = "day" | "week" | "month";
+export type AccessCohortPeriod = AdminPeriod;
 
 /** 코호트 묶음 기준 — 백엔드 `group_by`와 맞출 것 */
 export type CohortGroupBy = "signup_week" | "first_visit" | "all";

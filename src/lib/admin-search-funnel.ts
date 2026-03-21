@@ -1,9 +1,10 @@
 import axios from "axios";
 import { api, type ApiSuccessResponse } from "@/lib/api";
+import type { AdminPeriod } from "@/lib/admin-period";
 
 const SEARCH_FUNNEL_ENDPOINT = "/admin/analytics/search-funnel";
 
-export type SearchFunnelPeriod = "day" | "week" | "month";
+export type SearchFunnelPeriod = AdminPeriod;
 
 /** Normalized rates in 0–1 or 0–100; backend may use snake_case or camelCase. */
 export type SearchFunnelMetrics = {
