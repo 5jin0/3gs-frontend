@@ -204,9 +204,32 @@ export default function MyWordsPage() {
       )}
 
       {!loading && !loadError && !authError && words.length === 0 && (
-        <p className="mx-auto max-w-3xl rounded-xl border border-zinc-700/80 bg-zinc-900/70 px-4 py-3 text-left text-sm text-zinc-300 shadow-sm">
-          저장한 단어가 없습니다
-        </p>
+        <section className="mx-auto mt-16 flex max-w-3xl flex-col items-center text-center">
+          <div
+            aria-hidden
+            className="relative mb-6 flex size-32 items-center justify-center rounded-[2rem] bg-[radial-gradient(circle_at_30%_30%,rgba(167,168,255,0.35),rgba(74,93,255,0.22)_55%,rgba(30,30,43,0.92)_100%)]"
+          >
+            <svg
+              viewBox="0 0 24 24"
+              className="size-14 text-[#A7A8FF]"
+              fill="none"
+              stroke="currentColor"
+              strokeWidth="1.8"
+              strokeLinecap="round"
+              strokeLinejoin="round"
+            >
+              <circle cx="11" cy="11" r="6" />
+              <path d="m20 20-3.5-3.5" />
+              <path d="M9 11h4" />
+            </svg>
+          </div>
+          <p className="text-lg font-semibold text-zinc-100">
+            아직 저장한 단어가 없습니다.
+          </p>
+          <p className="mt-2 text-sm text-zinc-400">
+            단어를 검색한 뒤 저장하면 이곳에서 다시 확인할 수 있어요.
+          </p>
+        </section>
       )}
 
       {!loading && !loadError && !authError && words.length > 0 && (
