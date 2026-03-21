@@ -15,7 +15,10 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "판교패스",
+  title: {
+    default: "판교패스",
+    template: "%s | 판교패스",
+  },
   description: "업무 중 마주치는 생소한 판교어를 검색하고 저장하세요.",
 };
 
