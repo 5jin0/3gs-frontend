@@ -412,8 +412,8 @@ export function SearchBar() {
 
   return (
     <div className="mx-auto mt-10 w-full max-w-xl space-y-5">
-      <div className="rounded-2xl border border-zinc-200/80 bg-white/80 p-4 shadow-sm backdrop-blur dark:border-zinc-800/70 dark:bg-zinc-950/60">
-        <form className="flex flex-col gap-3 sm:flex-row sm:items-start" onSubmit={handleSubmit}>
+      <div className="rounded-full border border-[#4A5DFF]/60 bg-zinc-950/70 p-1.5 shadow-[0_0_24px_rgba(74,93,255,0.18)] backdrop-blur">
+        <form className="flex items-center gap-2" onSubmit={handleSubmit}>
           <label className="sr-only" htmlFor="keyword">
             검색어
           </label>
@@ -441,17 +441,17 @@ export function SearchBar() {
               disabled={loading}
               placeholder="예: 커피챗, 얼라인, 바텀업..."
               autoComplete="off"
-              className="h-12 w-full rounded-xl border border-zinc-200/80 bg-white px-4 text-sm text-zinc-900 outline-none ring-zinc-400 placeholder:text-zinc-400 transition-shadow focus-visible:ring-2 disabled:cursor-not-allowed disabled:opacity-60 dark:border-zinc-800/70 dark:bg-zinc-950 dark:text-zinc-50 dark:ring-zinc-500 dark:placeholder:text-zinc-500"
+              className="h-11 w-full rounded-full bg-transparent px-4 text-sm text-zinc-100 outline-none ring-[#4A5DFF]/60 placeholder:text-zinc-500 transition-shadow focus-visible:ring-2 disabled:cursor-not-allowed disabled:opacity-60"
             />
             {showSuggestions && suggestions.length > 0 && (
-              <ul className="absolute z-20 mt-2 max-h-60 w-full overflow-y-auto rounded-xl border border-zinc-200/90 bg-white p-1 shadow-lg dark:border-zinc-800/80 dark:bg-zinc-950">
+              <ul className="absolute z-20 mt-2 max-h-60 w-full overflow-y-auto rounded-xl border border-zinc-700/80 bg-zinc-900 p-1 shadow-lg">
                 {suggestions.map((item) => (
                   <li key={item.term}>
                     <button
                       type="button"
                       onMouseDown={(e) => e.preventDefault()}
                       onClick={() => handleSuggestionClick(item.term)}
-                      className="w-full rounded-lg px-3 py-2 text-left text-sm text-zinc-800 transition-colors hover:bg-zinc-100 dark:text-zinc-200 dark:hover:bg-zinc-800"
+                      className="w-full rounded-lg px-3 py-2 text-left text-sm text-zinc-200 transition-colors hover:bg-zinc-800"
                     >
                       {item.term}
                     </button>
@@ -463,7 +463,7 @@ export function SearchBar() {
           <button
             type="submit"
             disabled={!canSubmit}
-            className="inline-flex h-12 w-full shrink-0 items-center justify-center rounded-xl bg-zinc-900 px-5 text-sm font-medium text-white shadow-sm transition-colors hover:bg-zinc-800 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-zinc-400 focus-visible:ring-offset-2 focus-visible:ring-offset-white active:translate-y-px disabled:cursor-not-allowed disabled:opacity-60 whitespace-nowrap sm:w-auto dark:bg-zinc-50 dark:text-zinc-900 dark:hover:bg-zinc-200 dark:focus-visible:ring-zinc-500 dark:focus-visible:ring-offset-zinc-950"
+            className="inline-flex h-11 shrink-0 items-center justify-center rounded-full border border-zinc-700 bg-zinc-900 px-8 text-sm font-medium text-zinc-200 shadow-sm transition-colors hover:bg-zinc-800 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#4A5DFF]/70 focus-visible:ring-offset-2 focus-visible:ring-offset-zinc-950 active:translate-y-px disabled:cursor-not-allowed disabled:opacity-60"
           >
             {loading ? "검색 중..." : "검색"}
           </button>
