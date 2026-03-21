@@ -146,10 +146,10 @@ export default function MyWordsPage() {
 
       <header className="mx-auto mb-8 max-w-3xl text-left">
         <h1 className="text-4xl font-bold tracking-tight text-zinc-100">
-          더 많은 단어를 탐색하세요
+          내 단어장
         </h1>
         <p className="mt-2 text-sm leading-relaxed text-zinc-400">
-          저장한 단어를 검색하고 관리할 수 있어요.
+          저장한 단어를 한 곳에서 모아 볼 수 있어요
         </p>
       </header>
 
