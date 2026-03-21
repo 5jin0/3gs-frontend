@@ -47,6 +47,35 @@ export type LoginResponse = {
 
 type LoginEnvelope = ApiSuccessResponse<LoginResponse>;
 
+type MeEnvelopeUser = ApiSuccessResponse<AuthUser | { user: AuthUser }>;
+
+function unwrapAuthMeBody(body: unknown): AuthUser | null {
+  if (!body || typeof body !== "object") return null;
+
+  if (
+    "success" in body &&
+    (body as MeEnvelopeUser).success === true &&
+    "data" in body
+  ) {
+    const data = (body as MeEnvelopeUser).data;
+    if (data && typeof data === "object") {
+      if ("user" in data && (data as { user?: unknown }).user && typeof (data as { user: unknown }).user === "object") {
+        return (data as { user: AuthUser }).user;
+      }
+      if ("id" in data) return data as AuthUser;
+    }
+    return null;
+  }
+
+  if ("user" in body && (body as { user?: unknown }).user && typeof (body as { user: unknown }).user === "object") {
+    return (body as { user: AuthUser }).user;
+  }
+
+  if ("id" in body) return body as AuthUser;
+
+  return null;
+}
+
 function assertApiBaseUrl(): string | null {
   if (!process.env.NEXT_PUBLIC_API_BASE_URL) {
     // This prevents a hard crash when env is not configured.
@@ -82,5 +111,20 @@ export async function login(
   }
 
   return body as LoginResponse;
+}
+
+/** Current user from the server; requires a stored access token (Bearer). */
+export async function fetchAuthMe(): Promise<AuthUser> {
+  const baseUrl = assertApiBaseUrl();
+  if (!baseUrl) {
+    throw new Error("API base URL is not configured");
+  }
+
+  const res = await api.get<AuthUser | MeEnvelopeUser | { user: AuthUser }>("/auth/me");
+  const user = unwrapAuthMeBody(res.data);
+  if (!user) {
+    throw new Error("Invalid /auth/me response shape");
+  }
+  return user;
 }
 
