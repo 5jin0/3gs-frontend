@@ -1,11 +1,12 @@
 import axios from "axios";
+import { adminAnalyticsEndpoint } from "@/lib/admin-analytics-paths";
 import { api, type ApiSuccessResponse } from "@/lib/api";
 import type { AdminPeriod } from "@/lib/admin-period";
 import { heatIntensity } from "@/lib/admin-access-cohorts";
 
 export type RetentionGranularity = AdminPeriod;
 
-const RETENTION_ENDPOINT = "/admin/analytics/retention";
+const RETENTION_ENDPOINT = adminAnalyticsEndpoint("/retention");
 
 export type RetentionGridRow = {
   label: string;

@@ -1,10 +1,11 @@
 import axios from "axios";
+import { adminAnalyticsEndpoint } from "@/lib/admin-analytics-paths";
 import { api, type ApiSuccessResponse } from "@/lib/api";
 import type { AdminPeriod } from "@/lib/admin-period";
 
 export type SearchUxPeriod = AdminPeriod;
 
-const SEARCH_UX_ENDPOINT = "/admin/analytics/search-ux";
+const SEARCH_UX_ENDPOINT = adminAnalyticsEndpoint("/search-ux");
 
 /** 백엔드와 동일한 문구로 유지하세요. */
 export const COGNITIVE_LOAD_DEFINITION =

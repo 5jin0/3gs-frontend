@@ -6,6 +6,7 @@ import { AdminPageHeader } from "@/components/admin/AdminPageHeader";
 import { AdminPeriodToggle } from "@/components/admin/AdminPeriodToggle";
 import { AdminSkeleton } from "@/components/admin/AdminSkeleton";
 import { useCallback, useEffect, useState } from "react";
+import { adminAnalyticsNotFoundMessage } from "@/lib/admin-analytics-paths";
 import {
   fetchSearchFunnel,
   formatFunnelRate,
@@ -45,9 +46,7 @@ export default function AdminSearchFunnelPage() {
       if (isAdminForbiddenError(e)) {
         setError("이 지표는 관리자만 조회할 수 있습니다.");
       } else if (isSearchFunnelNotFoundError(e)) {
-        setError(
-          "검색 퍼널 API가 아직 없거나 경로가 다릅니다. (GET /admin/analytics/search-funnel?period=…)",
-        );
+        setError(adminAnalyticsNotFoundMessage("searchFunnel"));
       } else {
         setError("검색 퍼널 데이터를 불러오지 못했습니다.");
       }

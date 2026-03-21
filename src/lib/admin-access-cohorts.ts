@@ -1,8 +1,9 @@
 import axios from "axios";
+import { adminAnalyticsEndpoint } from "@/lib/admin-analytics-paths";
 import { api, type ApiSuccessResponse } from "@/lib/api";
 import type { AdminPeriod } from "@/lib/admin-period";
 
-const ACCESS_COHORTS_ENDPOINT = "/admin/analytics/access-cohorts";
+const ACCESS_COHORTS_ENDPOINT = adminAnalyticsEndpoint("/access-cohorts");
 
 export type AccessCohortPeriod = AdminPeriod;
 

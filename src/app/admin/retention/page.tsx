@@ -15,6 +15,7 @@ import {
   type RetentionGranularity,
   type RetentionGridData,
 } from "@/lib/admin-retention";
+import { adminAnalyticsNotFoundMessage } from "@/lib/admin-analytics-paths";
 import { isAdminForbiddenError } from "@/lib/admin";
 
 function HeatCell({
@@ -55,9 +56,7 @@ export default function AdminRetentionPage() {
       if (isAdminForbiddenError(e)) {
         setError("이 보고서는 관리자만 조회할 수 있습니다.");
       } else if (isRetentionNotFoundError(e)) {
-        setError(
-          "리텐션 API가 아직 없거나 경로가 다릅니다. (GET /admin/analytics/retention?granularity=…)",
-        );
+        setError(adminAnalyticsNotFoundMessage("retention"));
       } else {
         setError("리텐션 데이터를 불러오지 못했습니다.");
       }

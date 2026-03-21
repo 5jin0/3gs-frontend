@@ -1,8 +1,9 @@
 import axios from "axios";
+import { adminAnalyticsEndpoint } from "@/lib/admin-analytics-paths";
 import { api, type ApiSuccessResponse } from "@/lib/api";
 import type { AdminPeriod } from "@/lib/admin-period";
 
-const SEARCH_FUNNEL_ENDPOINT = "/admin/analytics/search-funnel";
+const SEARCH_FUNNEL_ENDPOINT = adminAnalyticsEndpoint("/search-funnel");
 
 export type SearchFunnelPeriod = AdminPeriod;
 

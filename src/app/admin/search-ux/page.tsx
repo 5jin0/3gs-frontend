@@ -6,6 +6,7 @@ import { AdminPageHeader } from "@/components/admin/AdminPageHeader";
 import { AdminPeriodToggle } from "@/components/admin/AdminPeriodToggle";
 import { AdminSkeleton } from "@/components/admin/AdminSkeleton";
 import { useCallback, useEffect, useMemo, useState } from "react";
+import { adminAnalyticsNotFoundMessage } from "@/lib/admin-analytics-paths";
 import {
   COGNITIVE_LOAD_DEFINITION,
   DEFAULT_MIN_SAMPLE_SIZE,
@@ -79,9 +80,7 @@ export default function AdminSearchUxPage() {
       if (isAdminForbiddenError(e)) {
         setError("이 지표는 관리자만 조회할 수 있습니다.");
       } else if (isSearchUxNotFoundError(e)) {
-        setError(
-          "검색 경험 API가 아직 없거나 경로가 다릅니다. (GET /admin/analytics/search-ux?period=…)",
-        );
+        setError(adminAnalyticsNotFoundMessage("searchUx"));
       } else {
         setError("검색 경험 데이터를 불러오지 못했습니다.");
       }

@@ -12,6 +12,7 @@ import {
   type UserSavedCountRow,
   type UserSavedCountSort,
 } from "@/lib/admin-user-saved-counts";
+import { adminAnalyticsNotFoundMessage } from "@/lib/admin-analytics-paths";
 import { isAdminForbiddenError } from "@/lib/admin";
 
 const PAGE_SIZE_OPTIONS = [10, 20, 50] as const;
@@ -57,9 +58,7 @@ export default function AdminUserSavedCountsPage() {
       if (isAdminForbiddenError(e)) {
         setError("이 목록은 관리자만 조회할 수 있습니다.");
       } else if (isUserSavedCountsNotFoundError(e)) {
-        setError(
-          "유저별 저장 횟수 API가 아직 없거나 경로가 다릅니다. (GET /admin/analytics/user-saved-counts)",
-        );
+        setError(adminAnalyticsNotFoundMessage("userSavedCounts"));
       } else {
         setError("목록을 불러오지 못했습니다.");
       }

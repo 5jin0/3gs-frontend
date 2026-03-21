@@ -6,6 +6,7 @@ import { AdminPageHeader } from "@/components/admin/AdminPageHeader";
 import { AdminPeriodToggle } from "@/components/admin/AdminPeriodToggle";
 import { AdminSkeleton } from "@/components/admin/AdminSkeleton";
 import { useCallback, useEffect, useMemo, useState } from "react";
+import { adminAnalyticsNotFoundMessage } from "@/lib/admin-analytics-paths";
 import {
   AccessCohortPeriod,
   CohortGroupBy,
@@ -67,9 +68,7 @@ export default function AdminCohortsPage() {
       if (isAdminForbiddenError(e)) {
         setError("이 보고서는 관리자만 조회할 수 있습니다.");
       } else if (isAccessCohortsNotFoundError(e)) {
-        setError(
-          "접속·코호트 API가 아직 없거나 경로가 다릅니다. (GET /admin/analytics/access-cohorts)",
-        );
+        setError(adminAnalyticsNotFoundMessage("accessCohorts"));
       } else {
         setError("데이터를 불러오지 못했습니다.");
       }

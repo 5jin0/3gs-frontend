@@ -1,7 +1,8 @@
 import axios from "axios";
+import { adminAnalyticsEndpoint } from "@/lib/admin-analytics-paths";
 import { api, type ApiSuccessResponse } from "@/lib/api";
 
-const USER_SAVED_COUNTS_ENDPOINT = "/admin/analytics/user-saved-counts";
+const USER_SAVED_COUNTS_ENDPOINT = adminAnalyticsEndpoint("/user-saved-counts");
 
 export type UserSavedCountSort =
   | "save_count_desc"
