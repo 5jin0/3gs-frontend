@@ -6,6 +6,7 @@ import { usePathname } from "next/navigation";
 const links = [
   { href: "/admin", label: "개요" },
   { href: "/admin/funnel", label: "검색 퍼널" },
+  { href: "/admin/search-ux", label: "검색 경험" },
   { href: "/admin/users", label: "사용자" },
   { href: "/admin/terms", label: "용어" },
   { href: "/admin/saves", label: "저장 단어" },
