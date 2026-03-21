@@ -145,7 +145,23 @@ export default function MyWordsPage() {
       />
 
       <header className="mx-auto mb-8 max-w-3xl text-left">
-        <h1 className="text-4xl font-bold tracking-tight text-zinc-100">
+        <h1 className="flex items-center gap-3 text-4xl font-bold tracking-tight text-zinc-100">
+          <span aria-hidden className="inline-flex shrink-0">
+            <svg
+              viewBox="0 0 24 24"
+              className="size-9 sm:size-10"
+              fill="none"
+              xmlns="http://www.w3.org/2000/svg"
+            >
+              <path
+                d="M19 21l-7-5-7 5V5a2 2 0 012-2h10a2 2 0 012 2v16z"
+                fill="#A5A6F6"
+                stroke="#C4C5FF"
+                strokeWidth="1.25"
+                strokeLinejoin="round"
+              />
+            </svg>
+          </span>
           내 단어장
         </h1>
         <p className="mt-2 text-sm leading-relaxed text-zinc-400">
