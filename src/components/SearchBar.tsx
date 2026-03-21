@@ -411,7 +411,7 @@ export function SearchBar() {
   }
 
   return (
-    <div className="mx-auto mt-10 w-full max-w-xl space-y-5">
+    <div className="mx-auto mt-10 w-full max-w-[27rem] space-y-4">
       <div className="rounded-full border border-[#4A5DFF]/60 bg-zinc-950/70 p-1.5 shadow-[0_0_24px_rgba(74,93,255,0.18)] backdrop-blur">
         <form className="flex items-center gap-2" onSubmit={handleSubmit}>
           <label className="sr-only" htmlFor="keyword">
@@ -439,19 +439,24 @@ export function SearchBar() {
               }}
               onKeyDown={handleKeywordKeyDown}
               disabled={loading}
-              placeholder="예: 커피챗, 얼라인, 바텀업..."
+              placeholder="SaaS, 커피챗, 얼라인 등을 검색해 보세요"
               autoComplete="off"
               className="h-11 w-full rounded-full bg-transparent px-4 text-sm text-zinc-100 outline-none ring-[#4A5DFF]/60 placeholder:text-zinc-500 transition-shadow focus-visible:ring-2 disabled:cursor-not-allowed disabled:opacity-60"
             />
             {showSuggestions && suggestions.length > 0 && (
-              <ul className="absolute z-20 mt-2 max-h-60 w-full overflow-y-auto rounded-xl border border-zinc-700/80 bg-zinc-900 p-1 shadow-lg">
-                {suggestions.map((item) => (
+              <ul className="absolute z-20 mt-2 max-h-56 w-full overflow-y-auto rounded-3xl border border-[#4A5DFF]/60 bg-zinc-950/95 p-2 shadow-[0_8px_24px_rgba(0,0,0,0.45)]">
+                {suggestions.map((item, idx) => (
                   <li key={item.term}>
                     <button
                       type="button"
                       onMouseDown={(e) => e.preventDefault()}
                       onClick={() => handleSuggestionClick(item.term)}
-                      className="w-full rounded-lg px-3 py-2 text-left text-sm text-zinc-200 transition-colors hover:bg-zinc-800"
+                      className={[
+                        "w-full rounded-xl px-4 py-2 text-left text-sm transition-colors",
+                        idx === 0
+                          ? "bg-zinc-800/75 text-zinc-100"
+                          : "text-zinc-300 hover:bg-zinc-800/60 hover:text-zinc-100",
+                      ].join(" ")}
                     >
                       {item.term}
                     </button>

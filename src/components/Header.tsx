@@ -1,10 +1,13 @@
 "use client";
 
 import Link from "next/link";
+import { usePathname } from "next/navigation";
 import { useAuth } from "@/contexts/AuthContext";
 
 export function Header() {
+  const pathname = usePathname();
   const { isLoggedIn, isAdmin, isSessionProfileReady, logout } = useAuth();
+  const isLoginPage = pathname === "/login";
 
   return (
     <header className="sticky top-0 z-40 w-full border-b border-zinc-800/70 bg-zinc-950/70 backdrop-blur">
@@ -20,7 +23,7 @@ export function Header() {
           판교패스
         </Link>
 
-        {isLoggedIn ? (
+        {isLoggedIn && !isLoginPage ? (
           <div className="flex items-center gap-3">
             <Link
               href="/my-words"

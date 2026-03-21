@@ -12,7 +12,7 @@ export default function Home() {
           <span className="text-[#4A5DFF]">판교패스</span>로 검색하세요
         </h1>
         <p className="mx-auto mt-4 max-w-xl text-base leading-7 text-zinc-400 sm:text-lg">
-          모르는 판교어를 검색하고 저장하세요
+          궁금했던 판교를 한 곳에서 검색하고 저장할 수 있어요
         </p>
 
         <SearchBar />
