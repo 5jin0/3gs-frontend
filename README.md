@@ -24,7 +24,7 @@ Copy `.env.example` to `.env.local` and set `NEXT_PUBLIC_API_BASE_URL` to your A
 
 ## Admin (관리자)
 
-Admin UI lives under `/admin`. Access requires `is_admin` on the user (via login and `GET /auth/me`). Aggregated and list endpoints are implemented in `src/lib/admin.ts` (for example `GET /admin/overview`, `/admin/users`, `/admin/terms`, `/admin/saves`). Adjust paths and response shapes there to match your backend.
+Admin UI lives under `/admin`. Access requires `is_admin` on the user (via login and `GET /auth/me`). Aggregated and list endpoints are implemented in `src/lib/admin.ts` and `src/lib/admin-search-funnel.ts` (for example `GET /admin/overview`, `GET /admin/analytics/search-funnel`, `/admin/users`, `/admin/terms`, `/admin/saves`). Adjust paths and response shapes there to match your backend.
 
 Visiting `/admin` while logged out redirects to `/login?next=…`; after a successful login, the app returns to that path (same-origin relative URLs only).
 
