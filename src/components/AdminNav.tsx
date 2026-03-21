@@ -9,6 +9,7 @@ const links = [
   { href: "/admin/search-ux", label: "검색 경험" },
   { href: "/admin/cohorts", label: "접속·코호트" },
   { href: "/admin/retention", label: "리텐션" },
+  { href: "/admin/saved-counts", label: "유저별 저장" },
   { href: "/admin/users", label: "사용자" },
   { href: "/admin/terms", label: "용어" },
   { href: "/admin/saves", label: "저장 단어" },

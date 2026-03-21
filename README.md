@@ -24,7 +24,7 @@ Copy `.env.example` to `.env.local` and set `NEXT_PUBLIC_API_BASE_URL` to your A
 
 ## Admin (관리자)
 
-Admin UI lives under `/admin`. Access requires `is_admin` on the user (via login and `GET /auth/me`). Aggregated and list endpoints are implemented in `src/lib/admin.ts`, `src/lib/admin-search-funnel.ts`, `src/lib/admin-search-ux.ts`, `src/lib/admin-access-cohorts.ts`, and `src/lib/admin-retention.ts` (for example `GET /admin/overview`, `GET /admin/analytics/search-funnel`, `GET /admin/analytics/search-ux`, `GET /admin/analytics/access-cohorts`, `GET /admin/analytics/retention`, `/admin/users`, `/admin/terms`, `/admin/saves`). Adjust paths and response shapes there to match your backend.
+Admin UI lives under `/admin`. Access requires `is_admin` on the user (via login and `GET /auth/me`). Aggregated and list endpoints are implemented in `src/lib/admin.ts`, `src/lib/admin-search-funnel.ts`, `src/lib/admin-search-ux.ts`, `src/lib/admin-access-cohorts.ts`, and `src/lib/admin-retention.ts`, `src/lib/admin-user-saved-counts.ts` (for example `GET /admin/overview`, `GET /admin/analytics/search-funnel`, `GET /admin/analytics/search-ux`, `GET /admin/analytics/access-cohorts`, `GET /admin/analytics/retention`, `GET /admin/analytics/user-saved-counts`, `/admin/users`, `/admin/terms`, `/admin/saves`). Adjust paths and response shapes there to match your backend.
 
 Visiting `/admin` while logged out redirects to `/login?next=…`; after a successful login, the app returns to that path (same-origin relative URLs only).
 
