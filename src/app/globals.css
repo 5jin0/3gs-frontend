@@ -1,9 +1,10 @@
 @import "tailwindcss";
 @import "pretendard/dist/web/static/pretendard.css";
 
-/* Brand canvas: #1E1E2B — 서비스 전역 톤앤매너 기준색 */
+/* 서비스 캔버스: Gray4(black) #1E1E2B */
 :root {
-  --background: #1e1e2b;
+  --gray-4-black: #1e1e2b;
+  --background: var(--gray-4-black);
   --foreground: #e8e8ed;
 }
 
@@ -11,7 +12,7 @@
   --color-background: var(--background);
   --color-foreground: var(--foreground);
   /* zinc 스케일을 캔버스(#1E1E2B)에 맞춰 정렬 (카드·패널·보더 일관성) */
-  --color-zinc-950: #1e1e2b;
+  --color-zinc-950: var(--gray-4-black);
   --color-zinc-900: #252538;
   --color-zinc-800: #32324a;
   --color-zinc-700: #3f3f5c;
@@ -34,6 +35,7 @@
 
 html {
   color-scheme: dark;
+  background: var(--background);
 }
 
 body {
