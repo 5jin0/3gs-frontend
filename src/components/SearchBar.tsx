@@ -35,13 +35,13 @@ function getTermIdForSave(item: PangyoTerm): number | null {
 function LoadingIndicator() {
   return (
     <div
-      className="flex items-center gap-3 rounded-xl border border-zinc-200/80 bg-white/80 px-4 py-3 text-sm text-zinc-600 shadow-sm dark:border-zinc-800/70 dark:bg-zinc-950/60 dark:text-zinc-400"
+      className="flex items-center gap-3 rounded-xl border border-zinc-700/80 bg-zinc-900/70 px-4 py-3 text-sm text-zinc-300 shadow-sm"
       role="status"
       aria-live="polite"
       aria-busy="true"
     >
       <span
-        className="size-5 shrink-0 animate-spin rounded-full border-2 border-zinc-200 border-t-zinc-800 dark:border-zinc-700 dark:border-t-zinc-200"
+        className="size-5 shrink-0 animate-spin rounded-full border-2 border-zinc-700 border-t-zinc-200"
         aria-hidden
       />
       <span>검색 중입니다…</span>
@@ -109,67 +109,67 @@ function ResultCard({
 
   const feedbackClass =
     feedback?.kind === "success"
-      ? "text-emerald-700 dark:text-emerald-400"
+      ? "text-emerald-400"
       : feedback?.kind === "warn"
-        ? "text-amber-800 dark:text-amber-300"
+        ? "text-amber-300"
         : feedback?.kind === "error"
-          ? "text-red-600 dark:text-red-400"
+          ? "text-red-400"
           : "";
 
   return (
-    <li className="rounded-2xl border border-zinc-200/90 bg-white/95 p-5 shadow-sm dark:border-zinc-800/80 dark:bg-zinc-950/85">
+    <li className="rounded-3xl border border-[#4A5DFF]/35 bg-zinc-900/70 p-6 shadow-[0_14px_36px_rgba(10,10,25,0.45)]">
       <dl className="space-y-4 text-sm">
         <div>
-          <dt className="text-xs font-medium uppercase tracking-wide text-zinc-500 dark:text-zinc-400">
+          <dt className="text-xs font-medium uppercase tracking-wide text-zinc-400">
             용어
           </dt>
-          <dd className="mt-1.5 text-lg font-semibold tracking-tight text-zinc-900 dark:text-zinc-50">
+          <dd className="mt-1.5 text-4xl font-semibold tracking-tight text-[#A7A8FF] sm:text-[2.1rem]">
             {item.term}
           </dd>
         </div>
         <div>
-          <dt className="text-xs font-medium uppercase tracking-wide text-zinc-500 dark:text-zinc-400">
+          <dt className="text-xs font-medium uppercase tracking-wide text-zinc-400">
             원래 의미
           </dt>
-          <dd className="mt-1.5 leading-relaxed text-zinc-700 dark:text-zinc-300">
+          <dd className="mt-1.5 leading-relaxed text-zinc-200">
             {item.original_meaning || "—"}
           </dd>
         </div>
         <div>
-          <dt className="text-xs font-medium uppercase tracking-wide text-zinc-500 dark:text-zinc-400">
+          <dt className="text-xs font-medium uppercase tracking-wide text-zinc-400">
             정의
           </dt>
-          <dd className="mt-1.5 leading-relaxed text-zinc-800 dark:text-zinc-200">
+          <dd className="mt-1.5 leading-relaxed text-zinc-100">
             {item.definition || "—"}
           </dd>
         </div>
         <div>
-          <dt className="text-xs font-medium uppercase tracking-wide text-zinc-500 dark:text-zinc-400">
+          <dt className="text-xs font-medium uppercase tracking-wide text-zinc-400">
             예시
           </dt>
-          <dd className="mt-1.5 rounded-lg border-l-2 border-zinc-300 bg-zinc-50/80 py-2 pl-3 pr-2 leading-relaxed text-zinc-700 dark:border-zinc-600 dark:bg-zinc-900/50 dark:text-zinc-300">
+          <dd className="mt-1.5 rounded-xl border-l-2 border-zinc-600 bg-zinc-950/70 py-2 pl-3 pr-2 leading-relaxed text-zinc-300">
             {item.example || "—"}
           </dd>
         </div>
       </dl>
-      <div className="mt-4 flex flex-col items-stretch gap-2 border-t border-zinc-200/80 pt-4 dark:border-zinc-800/70">
+      <div className="mt-5 flex flex-col items-stretch gap-2 border-t border-zinc-700/70 pt-4">
         <div className="flex justify-end">
           <button
             type="button"
             onClick={handleSave}
             disabled={termId == null || isSaved || saving}
-            className="inline-flex h-9 items-center justify-center rounded-lg border border-zinc-200 bg-white px-3 text-xs font-medium text-zinc-900 shadow-sm transition-colors hover:bg-zinc-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-zinc-400 focus-visible:ring-offset-2 focus-visible:ring-offset-white disabled:cursor-not-allowed disabled:opacity-50 dark:border-zinc-800 dark:bg-zinc-950 dark:text-zinc-50 dark:hover:bg-zinc-900 dark:focus-visible:ring-zinc-500 dark:focus-visible:ring-offset-zinc-950"
+            className="inline-flex h-10 items-center justify-center rounded-full border border-zinc-700 bg-zinc-800 px-4 text-xs font-medium text-zinc-200 shadow-sm transition-colors hover:bg-zinc-700 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-zinc-500 focus-visible:ring-offset-2 focus-visible:ring-offset-zinc-950 disabled:cursor-not-allowed disabled:opacity-50"
           >
             {saving ? "저장 중…" : "단어 저장"}
           </button>
         </div>
         {termId == null && (
-          <p className="text-xs text-zinc-500 dark:text-zinc-400">
+          <p className="text-xs text-zinc-400">
             저장할 수 없습니다. (용어 id가 없음)
           </p>
         )}
         {isSaved && !feedback && (
-          <p className="text-xs text-zinc-500 dark:text-zinc-400" role="status">
+          <p className="text-xs text-zinc-400" role="status">
             이미 저장된 단어입니다.
           </p>
         )}
@@ -411,7 +411,7 @@ export function SearchBar() {
   }
 
   return (
-    <div className="mx-auto mt-10 w-full max-w-[27rem] space-y-4">
+    <div className="mx-auto mt-10 w-full max-w-3xl space-y-4">
       <div className="rounded-full border border-[#4A5DFF]/60 bg-zinc-950/70 p-1.5 shadow-[0_0_24px_rgba(74,93,255,0.18)] backdrop-blur">
         <form className="flex items-center gap-2" onSubmit={handleSubmit}>
           <label className="sr-only" htmlFor="keyword">
@@ -475,7 +475,7 @@ export function SearchBar() {
         </form>
 
         {!loading && error && (
-          <p className="mt-4 text-left text-sm text-red-600 dark:text-red-400" role="alert">
+          <p className="mt-4 text-left text-sm text-red-400" role="alert">
             {error}
           </p>
         )}
@@ -508,7 +508,7 @@ export function SearchBar() {
       )}
 
       {!loading && !error && searched && results.length === 0 && (
-        <p className="rounded-xl border border-zinc-200/80 bg-white/80 px-4 py-3 text-left text-sm text-zinc-600 shadow-sm dark:border-zinc-800/70 dark:bg-zinc-950/60 dark:text-zinc-400">
+        <p className="rounded-xl border border-zinc-700/80 bg-zinc-900/70 px-4 py-3 text-left text-sm text-zinc-300 shadow-sm">
           검색 결과가 없습니다
         </p>
       )}

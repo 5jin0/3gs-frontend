@@ -7,7 +7,7 @@ export default function Home() {
         aria-hidden
         className="pointer-events-none absolute inset-0 -z-10 bg-[radial-gradient(900px_circle_at_50%_15%,rgba(77,99,255,0.22),transparent_60%)]"
       />
-      <section className="w-full max-w-2xl text-center">
+      <section className="w-full max-w-3xl text-center">
         <h1 className="text-4xl font-bold tracking-tight text-zinc-100 sm:text-6xl">
           <span className="text-[#4A5DFF]">판교패스</span>로 검색하세요
         </h1>
