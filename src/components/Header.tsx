@@ -14,11 +14,13 @@ export function Header() {
       <div className="mx-auto flex h-14 w-full max-w-5xl items-center justify-between px-6">
         <Link
           href="/"
-          className="inline-flex items-center gap-3 text-sm font-semibold tracking-tight text-zinc-100 hover:opacity-90"
+          className="inline-flex items-center gap-2.5 text-sm font-semibold tracking-tight text-zinc-100 hover:opacity-90"
         >
-          <span
+          <img
+            src="/pangyo-pass-logo-light.svg"
+            alt=""
+            className="h-9 w-auto shrink-0 object-contain object-left"
             aria-hidden
-            className="inline-block size-6 rounded-md border border-dashed border-zinc-600/80 bg-zinc-900/60"
           />
           판교패스
         </Link>
