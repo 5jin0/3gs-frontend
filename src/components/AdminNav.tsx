@@ -6,6 +6,7 @@ import { usePathname } from "next/navigation";
 const links = [
   { href: "/admin", label: "개요" },
   { href: "/admin/users", label: "사용자" },
+  { href: "/admin/terms", label: "용어" },
 ] as const;
 
 function linkClass(active: boolean) {

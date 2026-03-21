@@ -1,8 +1,10 @@
 import axios from "axios";
 import { api, type ApiSuccessResponse } from "@/lib/api";
+import { normalizePangyoTerm, type PangyoTerm } from "@/lib/pangyo-terms";
 
 const ADMIN_OVERVIEW_ENDPOINT = "/admin/overview";
 const ADMIN_USERS_ENDPOINT = "/admin/users";
+const ADMIN_TERMS_ENDPOINT = "/admin/terms";
 
 /** Loose shape so different backend field names still render. */
 export type AdminOverview = {
@@ -68,7 +70,7 @@ function unwrapDataArray<T>(body: unknown): T[] | null {
     if (Array.isArray(d)) return d as T[];
     if (d && typeof d === "object" && !Array.isArray(d)) {
       const inner = d as Record<string, unknown>;
-      for (const key of ["users", "items", "results"] as const) {
+      for (const key of ["users", "items", "results", "terms"] as const) {
         const v = inner[key];
         if (Array.isArray(v)) return v as T[];
       }
@@ -77,7 +79,7 @@ function unwrapDataArray<T>(body: unknown): T[] | null {
 
   if ("data" in top && Array.isArray(top.data)) return top.data as T[];
 
-  for (const key of ["users", "items", "results"] as const) {
+  for (const key of ["users", "items", "results", "terms"] as const) {
     const v = top[key];
     if (Array.isArray(v)) return v as T[];
   }
@@ -114,5 +116,21 @@ export async function fetchAdminUsers(): Promise<AdminUser[]> {
 }
 
 export function isAdminUsersNotFoundError(error: unknown): boolean {
+  return axios.isAxiosError(error) && error.response?.status === 404;
+}
+
+/** Admin glossary list (admin-only). Rows are normalized like search results. */
+export async function fetchAdminTerms(): Promise<PangyoTerm[]> {
+  const res = await api.get<unknown>(ADMIN_TERMS_ENDPOINT);
+  const list = unwrapDataArray<unknown>(res.data);
+  if (!list) {
+    throw new Error("Invalid admin terms response");
+  }
+  return list
+    .map((raw) => normalizePangyoTerm(raw))
+    .filter((x): x is PangyoTerm => x !== null);
+}
+
+export function isAdminTermsNotFoundError(error: unknown): boolean {
   return axios.isAxiosError(error) && error.response?.status === 404;
 }

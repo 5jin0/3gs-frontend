@@ -73,7 +73,7 @@ function asOptionalId(v: unknown): number | undefined {
 }
 
 /** Map backend field variants onto our PangyoTerm shape. */
-function normalizeTerm(raw: unknown): PangyoTerm | null {
+export function normalizePangyoTerm(raw: unknown): PangyoTerm | null {
   if (!raw || typeof raw !== "object") return null;
 
   const r = raw as Record<string, unknown>;
@@ -113,7 +113,7 @@ function normalizeTerm(raw: unknown): PangyoTerm | null {
 
 function normalizeResponse(payload: unknown): PangyoTerm[] {
   return extractTermList(payload)
-    .map(normalizeTerm)
+    .map(normalizePangyoTerm)
     .filter((x): x is PangyoTerm => x !== null);
 }
 
