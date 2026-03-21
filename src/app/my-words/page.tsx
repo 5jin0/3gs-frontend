@@ -118,6 +118,25 @@ export default function MyWordsPage() {
 
   const hasSearch = normalizedQuery.length > 0;
 
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search);
+    const q = params.get("q") ?? "";
+    setQuery(q);
+  }, []);
+
+  useEffect(() => {
+    const timer = window.setTimeout(() => {
+      const params = new URLSearchParams(window.location.search);
+      const next = query.trim();
+      if (next.length > 0) params.set("q", next);
+      else params.delete("q");
+      const qs = params.toString();
+      const target = `${window.location.pathname}${qs ? `?${qs}` : ""}${window.location.hash ?? ""}`;
+      window.history.replaceState(window.history.state, "", target);
+    }, 250);
+    return () => clearTimeout(timer);
+  }, [query]);
+
   return (
     <main className="relative mx-auto min-h-[calc(100dvh-3.5rem)] w-full max-w-5xl px-6 py-10">
       <div
