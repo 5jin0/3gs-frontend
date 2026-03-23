@@ -37,7 +37,8 @@ export default function MyWordsPage() {
     setRemoveError(null);
     setRemovingTermId(termId);
     try {
-      await removeSavedTerm(termId);
+      const target = words.find((word) => word.term_id === termId);
+      await removeSavedTerm(termId, target?.id);
       setWords((prev) => prev.filter((w) => w.term_id !== termId));
     } catch {
       setRemoveError("저장 취소에 실패했습니다.");

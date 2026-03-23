@@ -29,6 +29,9 @@ type GetMyWordsApiItem = {
   definition?: string;
   example?: string;
   saved_at?: string;
+  id?: number | string;
+  saved_id?: number | string;
+  wordbook_id?: number | string;
 };
 type GetMyWordsApiResponse = ApiSuccessResponse<GetMyWordsApiItem[]>;
 export type RemoveSavedTermResponse = ApiSuccessResponse<unknown>;
@@ -43,6 +46,15 @@ const SAVE_TERM_ENDPOINT = "/wordbook/save";
 const GET_MY_WORDS_ENDPOINT = "/wordbook";
 const REMOVE_SAVED_TERM_ENDPOINT = "/wordbook/terms";
 const MISSING_TOKEN_ERROR_CODE = "MISSING_ACCESS_TOKEN";
+
+function toFiniteNumber(value: unknown): number | undefined {
+  if (typeof value === "number" && Number.isFinite(value)) return value;
+  if (typeof value === "string" && value.trim()) {
+    const parsed = Number(value);
+    if (Number.isFinite(parsed)) return parsed;
+  }
+  return undefined;
+}
 
 export async function saveTerm(termId: number): Promise<SaveTermResult> {
   const token = getAccessToken();
@@ -87,12 +99,66 @@ export async function getMyWords(): Promise<SavedWord[]> {
     definition: item.definition ?? "",
     example: item.example ?? "",
     saved_at: item.saved_at,
-    id: item.term_id,
+    id:
+      toFiniteNumber(item.id) ??
+      toFiniteNumber(item.saved_id) ??
+      toFiniteNumber(item.wordbook_id) ??
+      item.term_id,
   }));
 }
 
-export async function removeSavedTerm(termId: number): Promise<void> {
-  await api.delete<RemoveSavedTermResponse>(`${REMOVE_SAVED_TERM_ENDPOINT}/${termId}`);
+function canTryNextDeleteShape(error: unknown): boolean {
+  if (!axios.isAxiosError(error)) return false;
+  const status = error.response?.status;
+  return status === 404 || status === 405 || status === 422;
+}
+
+export async function removeSavedTerm(
+  termId: number,
+  savedId?: number,
+): Promise<void> {
+  const idCandidates = Array.from(
+    new Set([savedId, termId].filter((v): v is number => Number.isFinite(v))),
+  );
+
+  const attempts: Array<() => Promise<unknown>> = [];
+  for (const id of idCandidates) {
+    attempts.push(() =>
+      api.delete<RemoveSavedTermResponse>(`${REMOVE_SAVED_TERM_ENDPOINT}/${id}`),
+    );
+  }
+  for (const id of idCandidates) {
+    attempts.push(() => api.delete<RemoveSavedTermResponse>(`/wordbook/${id}`));
+  }
+  for (const id of idCandidates) {
+    attempts.push(() =>
+      api.delete<RemoveSavedTermResponse>(`/wordbook/save/${id}`),
+    );
+  }
+  attempts.push(() =>
+    api.delete<RemoveSavedTermResponse>(GET_MY_WORDS_ENDPOINT, {
+      data: { term_id: termId, id: savedId },
+    }),
+  );
+  attempts.push(() =>
+    api.post<RemoveSavedTermResponse>("/wordbook/remove", {
+      term_id: termId,
+      id: savedId,
+    }),
+  );
+
+  let lastError: unknown = null;
+  for (const attempt of attempts) {
+    try {
+      await attempt();
+      return;
+    } catch (error) {
+      lastError = error;
+      if (!canTryNextDeleteShape(error)) throw error;
+    }
+  }
+
+  if (lastError) throw lastError;
 }
 
 export function isDuplicateSavedTermError(error: unknown): boolean {
