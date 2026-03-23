@@ -58,9 +58,9 @@ export default function AdminSavesPage() {
 
   return (
     <>
-      <h1 className="text-xl font-semibold tracking-tight text-zinc-900 dark:text-zinc-50">저장 단어</h1>
+      <h1 className="text-xl font-semibold tracking-tight text-[#E0E0E0]">저장 단어</h1>
       <p className="mt-2 text-sm text-zinc-600 dark:text-zinc-400">
-        사용자들이 단어장에 저장한 항목을 전체 조회합니다. 백엔드 스키마에 맞게 컬럼을 조정할 수 있습니다.
+        사용자들이 단어장에 저장한 항목을 전체 조회합니다.
       </p>
 
       {loading ? (

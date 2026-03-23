@@ -88,6 +88,7 @@ export default function AdminCohortsPage() {
     <>
       <AdminPageHeader
         title="접속·로그인·재접속"
+        titleClassName="text-xl font-semibold tracking-tight text-[#E0E0E0]"
         description="코호트별 접속·로그인·재접속 흐름을 표와 히트맵으로 봅니다."
       >
         <div className="flex flex-col gap-3 lg:flex-row lg:items-end">

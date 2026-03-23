@@ -52,10 +52,7 @@ export default function AdminPage() {
 
   return (
     <>
-      <h1 className="text-xl font-semibold tracking-tight text-zinc-900 dark:text-zinc-50">개요</h1>
-      <p className="mt-2 text-sm text-zinc-600 dark:text-zinc-400">
-        서비스 전체 요약입니다. 백엔드에 맞게 필드명을 조정할 수 있습니다.
-      </p>
+      <h1 className="text-xl font-semibold tracking-tight text-[#E0E0E0]">개요</h1>
 
       {loading ? (
         <div

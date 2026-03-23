@@ -10,7 +10,6 @@ import { adminAnalyticsNotFoundMessage } from "@/lib/admin-analytics-paths";
 import {
   fetchSearchFunnel,
   formatFunnelRate,
-  normalizeFunnelRatePercent,
   isSearchFunnelNotFoundError,
   SEARCH_FUNNEL_TOOLTIPS,
   type SearchFunnelMetrics,
@@ -21,14 +20,13 @@ import { isAdminForbiddenError } from "@/lib/admin";
 const METRICS: {
   key: keyof Pick<
     SearchFunnelMetrics,
-    "start_rate" | "click_rate" | "autocomplete_rate" | "failure_rate"
+    "start_rate" | "click_rate" | "autocomplete_rate"
   >;
   label: string;
 }[] = [
   { key: "start_rate", label: "시작률" },
   { key: "click_rate", label: "클릭률" },
   { key: "autocomplete_rate", label: "자동완성" },
-  { key: "failure_rate", label: "실패율" },
 ];
 
 export default function AdminSearchFunnelPage() {
@@ -61,19 +59,12 @@ export default function AdminSearchFunnelPage() {
     void load(period);
   }, [load, period]);
 
-  const hasOutOfRangeRate = Boolean(
-    data &&
-      METRICS.some(({ key }) => {
-        const v = data[key];
-        return typeof v === "number" && Number.isFinite(v) && normalizeFunnelRatePercent(v).clamped;
-      }),
-  );
-
   return (
     <>
       <AdminPageHeader
         title="검색 퍼널"
-        description="검색 시작·클릭·자동완성·실패 비율을 기간별로 확인합니다."
+        titleClassName="text-xl font-semibold tracking-tight text-[#E0E0E0]"
+        description="검색 시작·클릭·자동완성 비율을 기간별로 확인합니다."
       >
         <AdminPeriodToggle value={period} onChange={setPeriod} />
       </AdminPageHeader>
@@ -84,12 +75,7 @@ export default function AdminSearchFunnelPage() {
 
       {!loading && !error && data ? (
         <>
-          {hasOutOfRangeRate ? (
-            <AdminAlert variant="info" role="status">
-              비정상 rate 값(음수 또는 100% 초과)을 감지해 0~100% 범위로 보정해 표시했습니다.
-            </AdminAlert>
-          ) : null}
-          <dl className="mt-8 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+          <dl className="mt-8 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
             {METRICS.map(({ key, label }) => (
               <div
                 key={key}

@@ -94,6 +94,7 @@ export default function AdminUserSavedCountsPage() {
     <>
       <AdminPageHeader
         title="유저별 단어 저장 횟수"
+        titleClassName="text-xl font-semibold tracking-tight text-[#E0E0E0]"
         description="사용자별 저장한 단어 수를 정렬·페이지로 확인합니다. CSV는 현재 페이지 데이터만 내보냅니다."
       >
         <div className="flex flex-wrap items-center gap-3">

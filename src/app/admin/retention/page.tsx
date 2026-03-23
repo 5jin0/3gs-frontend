@@ -76,7 +76,8 @@ export default function AdminRetentionPage() {
     <>
       <AdminPageHeader
         title="리텐션"
-        description="코호트별 기간 경과에 따른 잔존을 그리드로 봅니다. 셀 단위는 백엔드 정의(비율·퍼센트 포인트 등)에 맞춰 표시됩니다."
+        titleClassName="text-xl font-semibold tracking-tight text-[#E0E0E0]"
+        description="코호트별 기간 경과에 따른 잔존을 그리드로 봅니다."
       >
         <AdminPeriodToggle
           value={granularity}

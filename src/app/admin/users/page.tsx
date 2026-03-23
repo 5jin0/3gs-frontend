@@ -53,9 +53,9 @@ export default function AdminUsersPage() {
 
   return (
     <>
-      <h1 className="text-xl font-semibold tracking-tight text-zinc-900 dark:text-zinc-50">사용자</h1>
+      <h1 className="text-xl font-semibold tracking-tight text-[#E0E0E0]">사용자</h1>
       <p className="mt-2 text-sm text-zinc-600 dark:text-zinc-400">
-        등록된 사용자를 확인합니다. 백엔드 필드에 맞게 표시 컬럼을 조정할 수 있습니다.
+        등록된 사용자를 확인합니다.
       </p>
 
       {loading ? (
