@@ -19,7 +19,8 @@ export type AdminAnalyticsKind =
   | "searchUx"
   | "accessCohorts"
   | "retention"
-  | "userSavedCounts";
+  | "userSavedCounts"
+  | "userWordbookReaccess";
 
 /** Shown when the server returns HTTP 404 for an analytics GET. */
 export function adminAnalyticsNotFoundMessage(kind: AdminAnalyticsKind): string {
@@ -30,6 +31,7 @@ export function adminAnalyticsNotFoundMessage(kind: AdminAnalyticsKind): string 
     accessCohorts: `${base}/access-cohorts?period=…&group_by=…`,
     retention: `${base}/retention?granularity=…`,
     userSavedCounts: `${base}/user-saved-counts`,
+    userWordbookReaccess: `${base}/user-wordbook-reaccess?period=…&page=…&page_size=…&sort=…`,
   };
   return (
     `서버가 404를 반환했습니다. 백엔드에 아래 GET이 없거나 경로가 다를 수 있습니다. ` +

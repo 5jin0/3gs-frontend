@@ -16,6 +16,7 @@ const sections = [
       { href: "/admin/cohorts", label: "접속·코호트" },
       { href: "/admin/retention", label: "리텐션" },
       { href: "/admin/saved-counts", label: "유저별 저장" },
+      { href: "/admin/wordbook-reaccess", label: "단어장 재접속" },
     ] as const,
   },
   {

@@ -9,11 +9,9 @@ import { useCallback, useEffect, useState } from "react";
 import { adminAnalyticsNotFoundMessage } from "@/lib/admin-analytics-paths";
 import {
   COGNITIVE_LOAD_DEFINITION,
-  DEFAULT_MIN_SAMPLE_SIZE,
   fetchSearchUx,
   formatCognitiveLoad,
   formatUxRate,
-  isSampleInsufficient,
   isSearchUxNotFoundError,
   type SearchUxMetrics,
   type SearchUxPeriod,
@@ -50,11 +48,6 @@ export default function AdminSearchUxPage() {
     void load(period);
   }, [load, period]);
 
-  const sampleWarning = data && isSampleInsufficient(data);
-  const sampleNote =
-    data?.sample_size != null
-      ? `현재 표본 수: ${data.sample_size} (권장 ${DEFAULT_MIN_SAMPLE_SIZE} 이상)`
-      : `권장 최소 표본: ${DEFAULT_MIN_SAMPLE_SIZE}`;
   return (
     <>
       <AdminPageHeader
@@ -71,15 +64,6 @@ export default function AdminSearchUxPage() {
 
       {!loading && !error && data ? (
         <div className="mt-8 space-y-8">
-          {sampleWarning ? (
-            <AdminAlert variant="info" role="status" className="mt-0">
-              <p className="font-medium">표본이 부족합니다</p>
-              <p className="mt-1 opacity-90">{sampleNote}</p>
-              <p className="mt-2 opacity-80">
-                아래 수치는 참고용이며, 표본이 쌓이면 안내가 사라질 수 있습니다.
-              </p>
-            </AdminAlert>
-          ) : null}
           <section aria-labelledby="churn-heading">
             <h2 id="churn-heading" className="text-sm font-semibold text-[#E0E0E0]">
               이탈
