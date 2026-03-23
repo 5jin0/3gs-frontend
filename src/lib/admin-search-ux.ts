@@ -7,9 +7,9 @@ export type SearchUxPeriod = AdminPeriod;
 
 const SEARCH_UX_ENDPOINT = adminAnalyticsEndpoint("/search-ux");
 
-/** 백엔드와 동일한 문구로 유지하세요. */
+/** 백엔드 신규 정의(0~1 비율)를 그대로 설명합니다. */
 export const COGNITIVE_LOAD_DEFINITION =
-  "검색 결과를 이해하고 다음 행동을 결정하기까지 사용자에게 요구되는 인지적 부담을 0~100 지수로 요약한 값입니다. 산출 방식은 백엔드 정의와 동일합니다.";
+  "동일 용어 반복 검색 사용자 비율입니다. 기간 내 검색 이벤트 1건 이상 고유 사용자 중, 동일 용어를 2회 이상 검색한 이력이 1개 이상인 고유 사용자 비율을 0~1로 계산해 내려주며, 화면에서는 퍼센트(%)로 변환해 표시합니다.";
 
 /** 표본이 이 값 미만이면 ‘표본 부족’ 안내를 띄웁니다. API가 sample_sufficient를 주면 그쪽을 우선합니다. */
 export const DEFAULT_MIN_SAMPLE_SIZE = 30;
@@ -23,7 +23,7 @@ export type SearchUxMetrics = {
   /** 세션/검색 중 이탈 비율 (0~1 또는 0~100) */
   abandonment_rate?: number;
   churn_rate?: number;
-  /** 인지 부담 지수 (보통 0~100) */
+  /** 인지 부담 지수 (백엔드 0~1 비율) */
   cognitive_load_index?: number;
   cognitive_load_avg?: number;
   /** 표본 수 */
@@ -120,7 +120,8 @@ export function normalizeUxRatePercent(value: number): { value: number; clamped:
 
 export function formatCognitiveLoad(value: number | undefined): string {
   if (value == null || !Number.isFinite(value)) return "—";
-  return `${value.toFixed(1)}`;
+  const clamped = Math.min(1, Math.max(0, value));
+  return `${(clamped * 100).toFixed(1)}%`;
 }
 
 export function isSampleInsufficient(data: SearchUxMetrics): boolean {

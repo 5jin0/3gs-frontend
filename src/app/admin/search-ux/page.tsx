@@ -20,11 +20,6 @@ import {
 } from "@/lib/admin-search-ux";
 import { isAdminForbiddenError } from "@/lib/admin";
 
-const COGNITIVE_LOAD_TEXT = COGNITIVE_LOAD_DEFINITION.replace(
-  " 산출 방식은 백엔드 정의와 동일합니다.",
-  "",
-);
-
 export default function AdminSearchUxPage() {
   const [period, setPeriod] = useState<SearchUxPeriod>("day");
   const [data, setData] = useState<SearchUxMetrics | null>(null);
@@ -114,19 +109,14 @@ export default function AdminSearchUxPage() {
               className="flex items-center gap-2 text-sm font-semibold text-[#E0E0E0]"
             >
               인지 부담
-              <AdminInfoTip text={COGNITIVE_LOAD_TEXT} />
+              <AdminInfoTip text={COGNITIVE_LOAD_DEFINITION} />
             </h2>
-            <p className="mt-2 text-xs leading-relaxed text-zinc-600 dark:text-zinc-400">
-              {COGNITIVE_LOAD_TEXT}
-            </p>
             <div className="mt-4 rounded-xl border border-zinc-200/80 bg-white/90 px-4 py-4 dark:border-zinc-800/70 dark:bg-zinc-950/60">
               <p className="text-xs font-medium uppercase tracking-wide text-zinc-500 dark:text-zinc-400">
-                지수 (평균 대체 가능)
+                인지부담지수 (동일 용어 반복 검색 사용자 비율)
               </p>
               {(() => {
-                const value = data.cognitive_load_index ?? data.cognitive_load_avg;
-                const formatted = formatCognitiveLoad(value);
-                const display = formatted === "—" ? "—" : `${formatted} / 100`;
+                const display = formatCognitiveLoad(data.cognitive_load_index);
                 return (
                   <>
                     <p className="mt-1 text-3xl font-semibold tabular-nums text-zinc-900 dark:text-zinc-50">
