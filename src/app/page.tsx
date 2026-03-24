@@ -10,14 +10,14 @@ export default function Home() {
         className="pointer-events-none absolute inset-0 -z-10 bg-[radial-gradient(900px_circle_at_50%_15%,rgba(77,99,255,0.22),transparent_60%)]"
       />
       <section className="w-full max-w-3xl text-center">
-        <h1 className="text-4xl font-bold tracking-tight text-zinc-100 sm:text-6xl">
+        <h1 className="text-[64px] font-bold leading-tight tracking-tight text-zinc-100">
           <span className="inline-block bg-gradient-to-r from-[#2529FF] to-[#7404FF] bg-clip-text text-transparent">
             판교패스
           </span>
           로 검색하세요
         </h1>
-        <p className="mx-auto mt-4 max-w-xl text-base leading-7 text-zinc-400 sm:text-lg">
-          궁금했던 판교를 한 곳에서 검색하고 저장할 수 있어요
+        <p className="mx-auto mt-4 max-w-xl text-[24px] leading-8 text-zinc-400">
+          궁금했던 판교어를 한 곳에서 검색하고 저장할 수 있어요
         </p>
 
         <SearchBar />
