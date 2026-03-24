@@ -20,12 +20,11 @@ import { isAdminForbiddenError } from "@/lib/admin";
 const METRICS: {
   key: keyof Pick<
     SearchFunnelMetrics,
-    "start_rate" | "click_rate" | "autocomplete_rate"
+    "start_rate" | "autocomplete_rate"
   >;
   label: string;
 }[] = [
   { key: "start_rate", label: "시작률" },
-  { key: "click_rate", label: "클릭률" },
   { key: "autocomplete_rate", label: "자동완성" },
 ];
 
@@ -64,7 +63,7 @@ export default function AdminSearchFunnelPage() {
       <AdminPageHeader
         title="검색 퍼널"
         titleClassName="text-xl font-semibold tracking-tight text-[#E0E0E0]"
-        description="검색 시작·클릭·자동완성 비율을 기간별로 확인합니다."
+        description="검색 시작·자동완성 비율을 기간별로 확인합니다."
       >
         <AdminPeriodToggle value={period} onChange={setPeriod} />
       </AdminPageHeader>
